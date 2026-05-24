@@ -69,4 +69,7 @@ public class DiscoveryController {
         meetingService.copyFromDiscovered(user, event);
         return "redirect:/calendar";
     }
+
+
+
 }
