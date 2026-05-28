@@ -81,15 +81,17 @@ class MeetingServiceTest {
 
     /**
      * Testa o Branch de error de validação de Status no  respond.
-     * Cobre as linhas de decisão onde um estado como 'PENDING' não pode ser enviado na resposta.
+     * Cobre as linhas de decisão onde um estado  pending  não pode ser enviado na resposta.
      */
     @Test
-    void respond_StatusInvalido_LancaExcecao() {
-        User convidado = new User("pedro", "pedro@mail.com", "pass");
+    void respond_StatusInvalidoo() {
+        // Preprar o teste
+        User user = new User("Miguel", "Miguelou04@mail.com", "Benfica");
 
-        // Tentamos responder com "PENDING", o que deve acionar o 'if' e falhar
+
+        // Verificar se ao tentar responder com pend ,  envia a illigalException
         assertThrows(IllegalArgumentException.class, () -> {
-            meetingService.respond(1L, convidado, InviteStatus.PENDING);
+            meetingService.respond(1L, user, InviteStatus.PENDING);
         });
     }
 
@@ -99,21 +101,22 @@ class MeetingServiceTest {
      */
     @Test
     void respond_StatusAceite_AtualizaConvite() {
-        // 1. Mock do utilizador: não precisamos de 'setId', apenas que o getter funcione
-        User convidado = mock(User.class);
-        when(convidado.getId()).thenReturn(100L);
 
-        // 2. Mock do participante: contorna o construtor protegido
+        // Preparar o utilizador user
+        User user = mock(User.class);
+        when(user.getId()).thenReturn(100L);
+
+        // Preparar o convite da reunião
         MeetingParticipant convite = mock(MeetingParticipant.class);
 
-        // 3. Configura o comportamento do mock do repositório
+        // Simula a procura do convite pelo id da reunião e utilizador
         when(participantRepository.findByMeetingIdAndUserId(1L, 100L))
                 .thenReturn(Optional.of(convite));
 
-        // 4. Ação: o serviço chamará o setStatus no mock
-        meetingService.respond(1L, convidado, InviteStatus.ACCEPTED);
+        // Executa a resposta ao convite
+        meetingService.respond(1L, user, InviteStatus.ACCEPTED);
 
-        // 5. Verificação: Verifica se o método setStatus foi chamado no mock com o valor correto
+        // Verifica se o estado do convite foi atualizado
         verify(convite).setStatus(InviteStatus.ACCEPTED);
     }
 }

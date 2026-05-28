@@ -32,36 +32,45 @@ class UserServiceTest {
     }
 
     /**
-     * Testa o ramo (Branch) onde o utilizador já existe.
-     * Cobre o 'if (userRepository.existsByUsername(username))' como VERDADEIRO.
+     * Testa o Branch  onde o utilizador ja existe
+     * Cobre o 'if (userRepository.existsByUsername(username))' como true .
      */
     @Test
     void register_UtilizadorJaExiste_LancaExcecao() {
-        when(userRepository.existsByUsername("joao")).thenReturn(true);
+
+        when(userRepository.existsByUsername("miguel")).thenReturn(true);
 
         assertThrows(IllegalArgumentException.class, () -> {
-            userService.register("joao", "joao@email.com", "senha123");
+            userService.register("miguel", "miguel@email.com", "benfica");
         });
 
         verify(userRepository, never()).save(any(User.class));
     }
 
     /**
-     * Testa o ramo (Branch) de sucesso do registo.
-     * Cobre a criação, codificação e persistência do utilizador (Line Coverage).
+     * Testa o Branch de sucesso do registo.
+     * Cobre a criação, codificação e persistência do utilizador  .
      */
     @Test
-    void register_UtilizadorNovo_GuardaERetornaUtilizador() {
-        when(userRepository.existsByUsername("maria")).thenReturn(false);
-        when(passwordEncoder.encode("senha123")).thenReturn("hash");
+    void register_user_and_save() {
 
-        // Mock do utilizador para validar o retorno sem depender de setters inexistentes
+        //usern  ainda não existe
+        when(userRepository.existsByUsername("maria")).thenReturn(false);
+
+        // Simula a encriptação da password
+        when(passwordEncoder.encode("benfica")).thenReturn("benficahash");
+
+        // Preparar o utilizador retornado pelo save
         User userRetornado = mock(User.class);
+
+        // Simula o save do utilizador
         when(userRepository.save(any(User.class))).thenReturn(userRetornado);
 
-        User resultado = userService.register("maria", "maria@email.com", "senha123");
+        User user = userService.register("miguel", "miguelou04@email.com", "Benfica123");
 
-        assertNotNull(resultado);
+
+        // Verifica  se o utilzador nao é null e save aparecer 1 vez
+        assertNotNull(user);
         verify(userRepository, times(1)).save(any(User.class));
     }
 
@@ -69,25 +78,32 @@ class UserServiceTest {
      * Testa o caso de sucesso do requireByUsername.
      */
     @Test
-    void requireByUsername_EncontraUtilizador_RetornaUser() {
+    void requireByUsername() {
+        // Preparar os testes criar o user e quando chamada miguel retorna o user
         User user = mock(User.class);
-        when(userRepository.findByUsername("tiago")).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername("miguel")).thenReturn(Optional.of(user));
 
-        User resultado = userService.requireByUsername("tiago");
+        // Procura user
+        User res = userService.requireByUsername("miguel");
 
-        assertEquals(user, resultado);
+        // Verifica se o utilizador retornado é o esperado
+        assertEquals(user, res);
     }
 
     /**
-     * Testa o ramo (Branch) onde o utilizador não é encontrado.
-     * Cobre o orElseThrow (Line Coverage).
+     * Testa o Branch onde o utilizador não é encontrado.
+     * Cobre o orElseThrow
      */
     @Test
-    void requireByUsername_NaoEncontraUtilizador_LancaExcecao() {
-        when(userRepository.findByUsername("desconhecido")).thenReturn(Optional.empty());
+    void requireByUsername_NotFound() {
+        // Simula que o utilizador não existe
+        when(userRepository.findByUsername("mIGUEL")).thenReturn(Optional.empty());
+
+
+        // Verifica se é lançado exetion por nao ser encontrado
 
         assertThrows(IllegalArgumentException.class, () -> {
-            userService.requireByUsername("desconhecido");
+            userService.requireByUsername("mIGUEL");
         });
     }
 }
