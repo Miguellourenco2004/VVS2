@@ -38,34 +38,43 @@ class MeetingServiceTest {
      */
     @Test
     void propose_DataFimInvalida_LancaExcecao() {
-        User dono = new User("dono", "dono@mail.com", "pass");
+        // Preprar o teste
+        User user = new User("Miguel", "Miguelou04@mail.com", "benfica");
         Instant inicio = Instant.now();
-        Instant fim = inicio.minusSeconds(3600); // Fim no passado!
+        Instant fim = inicio.minusSeconds(3600); // o fim esta no passado
 
+        // Verificar se o resultaco contem : a execao por o fim < inicio
         assertThrows(IllegalArgumentException.class, () -> {
-            meetingService.propose(dono, "Titulo", "Desc", inicio, fim, List.of());
+            meetingService.propose(user, "Titulo", "Desc", inicio, fim, List.of());
         });
 
-        // Verifica que o save não é chamado (Branch foi interrompido)
+        // Verifica que o save não é chamdo logo nao foi guardo o propose nao foi guardado
         verify(meetingRepository, never()).save(any());
     }
 
     /**
-     * Testa o ramo (Branch) de SUCESSO do método propose.
+     * Testa o Branch de susseful do propose.
      * Cobre o loop 'for', a linha do 'if (normalized.isEmpty() || !seen.add(normalized))' para convidados válidos
      * e garante a Line Coverage da persistência na base de dados.
      */
     @Test
     void propose_DadosValidos_GuardaReuniaoComConvidados() {
-        User dono = new User("dono", "dono@mail.com", "pass");
-        User convidado = new User("pedro", "pedro@mail.com", "pass");
+        // Preprar o teste
+        User user = new User("Miguel", "Miguelou04@mail.com", "Benfica");
+        User convite = new User("pedro", "pedro@mail.com", "Pedro");
 
-        when(userRepository.findByUsername("pedro")).thenReturn(Optional.of(convidado));
-        when(meetingRepository.save(any(Meeting.class))).thenAnswer(i -> i.getArguments()[0]);
+        // Devolve o  user pedro quando for procurado
+        when(userRepository.findByUsername("pedro")).thenReturn(Optional.of(convite));
 
-        Meeting resultado = meetingService.propose(dono, "Título", "Desc",
+        // Devolve a própria reunião guardada
+        when(meetingRepository.save(any(Meeting.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // resultado
+        Meeting resultado = meetingService.propose(user, "Título", "Desc",
                 Instant.now(), Instant.now().plusSeconds(3600), List.of("pedro"));
 
+        // Verifica se o o resultado nao é null
         assertNotNull(resultado);
         verify(meetingRepository, times(1)).save(any(Meeting.class));
     }
