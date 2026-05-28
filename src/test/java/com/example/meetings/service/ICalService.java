@@ -16,49 +16,50 @@ class ICalServiceTest {
     private final ICalService iCalService = new ICalService();
 
     /**
-     * Testa múltiplos ramos (Branches) simultaneamente para manter o teste curto:
-     * - Cobre a linha onde o 'if' da descrição é VERDADEIRO.
-     * - Cobre a linha onde isConfirmed() é VERDADEIRO (STATUS:CONFIRMED).
+     * Testa múltiplos Branches  simultaneamente :
+     * - Cobre a linha onde o 'if' da descrição é true.
+     * - Cobre a linha onde isConfirmed() é true (STATUS:CONFIRMED).
      * - Cobre a conversão do estado InviteStatus.ACCEPTED.
      */
     @Test
-    void render_ReuniaoConfirmadaComDescricao_GeraTextoVCalendar() {
-        // Preparação
-        User dono = new User("dono", "dono@mail.com", "pass");
-        Meeting reuniao = new Meeting("Projeto X", "Discussão importante", Instant.now(), Instant.now().plusSeconds(3600), dono);
-        reuniao.addParticipant(new MeetingParticipant(reuniao, dono, InviteStatus.ACCEPTED));
+    void render_reuniaocroadoacomcalendario() {
+        // Preprar os dados
+        User user = new User("Miguel", "Miguelou04@mail.com", "benfica");
+        Meeting reuniao = new Meeting("Projeto VVS", "Reuniao proff", Instant.now(), Instant.now().plusSeconds(3600), user);
+        reuniao.addParticipant(new MeetingParticipant(reuniao, user, InviteStatus.ACCEPTED));
 
-        // Ação
-        String resultado = iCalService.render(dono, List.of(reuniao));
+        // executar a pesquisa
+        String resultado = iCalService.render(user, List.of(reuniao));
 
-        // Verificação: Garantimos que as linhas formatadas apareceram (Line Coverage dos blocos if/switch)
-        assertTrue(resultado.contains("DESCRIPTION:Discussão importante"));
+
+        // Verificar se o resultaco contem : os a descricao e a confimacao de sucesso
+        assertTrue(resultado.contains("DESCRIPTION:Reuniao proff"));
         assertTrue(resultado.contains("STATUS:CONFIRMED"));
         assertTrue(resultado.contains("PARTSTAT=ACCEPTED"));
     }
 
     /**
-     * Testa os ramos (Branches) alternativos:
-     * - Cobre a linha onde o 'if' da descrição é FALSO (reunião sem descrição).
-     * - Cobre a linha onde isConfirmed() é FALSO (STATUS:TENTATIVE).
+     * Testa os Branches  alternativos:
+     * - Cobre a linha onde o 'if' da descrição é false quando reunião sem descrição.
+     * - Cobre a linha onde isConfirmed() é falso quando ainda nao esta confirmacada.
      * - Cobre a conversão do estado InviteStatus.PENDING.
      */
     @Test
     void render_ReuniaoPendenteSemDescricao_GeraTextoVCalendarTentativo() {
-        // Preparação
-        User dono = new User("dono", "dono@mail.com", "pass");
-        User convidado = new User("convidado", "convidado@mail.com", "pass");
+        // Preprar o teste
+        User user = new User("Miguel", "Miguelou04@mail.com", "Benfica");
+        User convidado = new User("Pedro", "Pedro@mail.com", "Pedro");
 
-        Meeting reuniao = new Meeting("Almoço", "", Instant.now(), Instant.now().plusSeconds(3600), dono);
-        reuniao.addParticipant(new MeetingParticipant(reuniao, dono, InviteStatus.ACCEPTED));
+        Meeting reuniao = new Meeting("Lolzinho", "", Instant.now(), Instant.now().plusSeconds(3600), user);
+        reuniao.addParticipant(new MeetingParticipant(reuniao, user, InviteStatus.ACCEPTED));
         reuniao.addParticipant(new MeetingParticipant(reuniao, convidado, InviteStatus.PENDING));
 
-        // Ação
-        String resultado = iCalService.render(dono, List.of(reuniao));
+        // executar a pesquisa
+        String resultado = iCalService.render(user, List.of(reuniao));
 
-        // Verificação: Verifica os ramos alternativos processados
-        assertFalse(resultado.contains("DESCRIPTION:")); // Ramo falso da descrição
-        assertTrue(resultado.contains("STATUS:TENTATIVE")); // Ramo falso do isConfirmed
+        // Verificar se o resultaco contem : descricao vazia , e p statos de ainda nao confirmado
+        assertFalse(resultado.contains("DESCRIPTION:")); // Ramo false da descrição
+        assertTrue(resultado.contains("STATUS:TENTATIVE")); // Ramo false do isConfirmed
         assertTrue(resultado.contains("PARTSTAT=NEEDS-ACTION")); // Ramo do switch para PENDING
     }
 }

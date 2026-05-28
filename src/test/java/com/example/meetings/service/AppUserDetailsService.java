@@ -29,36 +29,36 @@ class AppUserDetailsServiceTest {
     }
 
     /**
-     * Testa o ramo (Branch) de SUCESSO.
+     * Testa Branch de SUCESSO.
      * Cobre as linhas de execução onde o repositório encontra o utilizador e cria o objeto UserDetails com sucesso.
      */
     @Test
-    void loadUserByUsername_UtilizadorEncontrado_RetornaUserDetails() {
-        // Preparação
-        User utilizador = new User("carlos", "carlos@email.com", "hashDaPass");
-        when(userRepository.findByUsername("carlos")).thenReturn(Optional.of(utilizador));
+    void loadUserByUsername_sucessefulrequest() {
+       // Preprar os dados
+        User user = new User("Miguel", "Miguelou04@email.com", "benfica");
+        when(userRepository.findByUsername("Miguel")).thenReturn(Optional.of(user));
 
-        // Ação
-        UserDetails resultado = appUserDetailsService.loadUserByUsername("carlos");
+        // executar a pesquisa
+        UserDetails r = appUserDetailsService.loadUserByUsername("Miguel");
 
-        // Verificação
-        assertNotNull(resultado);
-        assertEquals("carlos", resultado.getUsername());
-        assertEquals("hashDaPass", resultado.getPassword());
+        // vefiricar se o r obtido foi o esperado : encontrar o username
+        assertNotNull(r);
+        assertEquals("Miguel", r.getUsername());
+        assertEquals("benfica", r.getPassword());
     }
 
     /**
-     * Testa o ramo (Branch) de ERRO no Optional.orElseThrow.
+     * Testa Branch de ERRO no Optional.orElseThrow.
      * Cobre a linha em que é lançada a exceção UsernameNotFoundException.
      */
     @Test
-    void loadUserByUsername_UtilizadorNaoExiste_LancaExcecao() {
+    void loadUserByUsername_invaliduser() {
         // Preparação
-        when(userRepository.findByUsername("fantasma")).thenReturn(Optional.empty());
+        when(userRepository.findByUsername("naoexiste")).thenReturn(Optional.empty());
 
-        // Ação e Verificação
+        // verificar se o r obtifo foi o  esperado : lançar a exceção
         assertThrows(UsernameNotFoundException.class, () -> {
-            appUserDetailsService.loadUserByUsername("fantasma");
+            appUserDetailsService.loadUserByUsername("naoexiste");
         });
     }
 }

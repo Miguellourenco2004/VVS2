@@ -33,8 +33,8 @@ class MeetingServiceTest {
     void setUp() { MockitoAnnotations.openMocks(this); }
 
     /**
-     * Testa o ramo (Branch) de ERRO na validação de datas do método propose.
-     * Cobre a linha 'if (!end.isAfter(start))' lançando exceção se a data de fim for anterior à de início.
+     * Testa Branch de error na validação de datas do  propose.
+     * Cobre a linha 'if (!end.isAfter(start))'  exceção se a  data fim < data inicio
      */
     @Test
     void propose_DataFimInvalida_LancaExcecao() {
