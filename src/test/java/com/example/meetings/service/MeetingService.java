@@ -80,7 +80,7 @@ class MeetingServiceTest {
     }
 
     /**
-     * Testa o ramo (Branch) de ERRO de validação de Status no método respond.
+     * Testa o Branch de error de validação de Status no  respond.
      * Cobre as linhas de decisão onde um estado como 'PENDING' não pode ser enviado na resposta.
      */
     @Test
@@ -94,7 +94,7 @@ class MeetingServiceTest {
     }
 
     /**
-     * Testa o ramo (Branch) de SUCESSO no método respond.
+     * Testa o Branch  de sucesseful no  respond.
      * Cobre as linhas onde o convite é encontrado e o Status é atualizado.
      */
     @Test
