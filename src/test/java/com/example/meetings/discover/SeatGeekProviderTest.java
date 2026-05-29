@@ -13,7 +13,7 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-// Injetamos um clientId falso e apontamos o SUT para o nosso WireMock!
+
 @SpringBootTest(properties = {
         "app.discover.seatgeek.client-id=fake-client-id",
         "app.discover.seatgeek.base-url=http://localhost:8089"
@@ -27,7 +27,7 @@ class SeatGeekProviderTest {
 
     @BeforeEach
     void setUp() {
-        // Levanta o servidor falso na porta 8089 antes de cada teste
+        // Inicializa o servidor WireMock
         wireMockServer = new WireMockServer(8089);
         wireMockServer.start();
         WireMock.configureFor("localhost", 8089);
@@ -35,98 +35,110 @@ class SeatGeekProviderTest {
 
     @AfterEach
     void tearDown() {
-        // Desliga o servidor após o teste
+
         wireMockServer.stop();
     }
 
+
+    /**
+     * Testa a pesquisa de eventos
+     * quando a API responde corretamente.
+     */
     @Test
     void searchReturnsDiscoveredEventsWhenApiIsSuccessful() {
-        // ARRANGE: Preparar a resposta falsa (Mock) do WireMock
+        // Preparar resposta JSON da API
         String jsonResponse = """
             {
               "events": [
                 {
-                  "id": 12345,
-                  "title": "Concerto de Rock",
+                  "id": 67,
+                  "title": "Concerto de Jazz",
                   "datetime_utc": "2024-12-01T20:00:00",
                   "url": "https://seatgeek.com/evento",
                   "venue": {
-                    "name": "Estádio da Luz"
+                    "name": "Sala 6"
                   }
                 }
               ]
             }
             """;
 
-        // Dizemos ao WireMock: Quando fizerem um GET com "q=rock", devolve o JSON acima.
+        // GET com "q=rock", devolve o JSON
         stubFor(get(urlPathEqualTo("/events"))
-                .withQueryParam("q", equalTo("rock"))
-                .withQueryParam("client_id", equalTo("fake-client-id"))
+                .withQueryParam("q", equalTo("jazz"))
+                .withQueryParam("client_id", equalTo("fake-client-id"))  // OQUE È O FAKE ID
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withStatus(200)
                         .withBody(jsonResponse)));
 
-        // ACT: Executar o método real do nosso código
-        List<DiscoveredEvent> results = seatGeekProvider.search("rock");
+        // Executa a pesquisa
+        List<DiscoveredEvent> results = seatGeekProvider.search("jazz");
 
-        // ASSERT: Verificar se o nosso código processou o JSON corretamente
+        //  Verifica se  processou o JSON corretamente
         assertEquals(1, results.size());
 
         DiscoveredEvent event = results.get(0);
         assertEquals("SeatGeek", event.source());
-        assertEquals("12345", event.externalId());
-        assertEquals("Concerto de Rock", event.title());
-        assertEquals("Estádio da Luz", event.venue());
-        assertNotNull(event.start()); // Garante que a data foi "parseada" corretamente
+        assertEquals("67", event.externalId());
+        assertEquals("Concerto de Jazz", event.title());
+        assertEquals("Sala 6", event.venue());
+        assertNotNull(event.start());
     }
 
-
+    /**
+     * Testa provider
+     * não está configurado.
+     */
     @Test
     void searchReturnsEmptyListWhenProviderIsNotConfigured() {
-        // ARRANGE: Criamos uma instância manual com o Client ID vazio.
+        // Preparar provider sem client id
         // Assim testamos a proteção inicial do método search().
         SeatGeekProvider unconfiguredProvider = new SeatGeekProvider(
                 "", // Client ID vazio!
                 "http://localhost:8089"
         );
 
-        // ACT
+        // pesquisa
         List<DiscoveredEvent> results = unconfiguredProvider.search("lakers");
 
-        // ASSERT: O método isConfigured() bloqueia a chamada e devolve uma lista vazia.
+        //verificar se  isConfigured() bloqueia  e devolve uma lista vazia.
         assertTrue(results.isEmpty());
     }
 
+
+    /**
+     * Testa o o evento
+     * não que nao possui data de início.
+     */
     @Test
     void searchIgnoresEventsWithoutStartDate() {
-        // ARRANGE: Um evento onde a API do SeatGeek não envia o campo 'datetime_utc'
-        // ou o envia a null.
+        // Preparar  JSON sem datetime
         String jsonResponseWithoutDate = """
             {
               "events": [
                 {
-                  "id": 555,
-                  "title": "Jogo de Basquetebol",
+                  "id": 752,
+                  "title": "Peladinha fut",
                   "url": "https://seatgeek.com/jogo"
                 }
               ]
             }
             """;
 
+        //  resposta API para pesquisa
         stubFor(get(urlPathEqualTo("/events"))
-                .withQueryParam("q", equalTo("basquete"))
+                .withQueryParam("q", equalTo("fut"))
                 .withQueryParam("client_id", equalTo("fake-client-id"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withStatus(200)
                         .withBody(jsonResponseWithoutDate)));
 
-        // ACT
+        // pesquisa
         List<DiscoveredEvent> results = seatGeekProvider.search("basquete");
 
-        // ASSERT: Como o datetime_utc não existe, o parseStart devolve null,
-        // o código faz "continue" e a lista volta vazia.
+        // datetime_utc não existe, o parseStart devolve null e lista retorna vazia
         assertTrue(results.isEmpty());
     }
 
