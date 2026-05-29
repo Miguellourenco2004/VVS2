@@ -27,36 +27,50 @@ class CalendarControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    // Criamos Mocks dos serviços porque não queremos usar a base de dados real aqui!
+    //  Mocks dos serviços
     @MockBean
     private MeetingService meetingService;
 
     @MockBean
     private UserService userService;
 
+
+
+    /**
+     * Testa se a página do calendário é carregada
+     * corretamente para um utilizador autenticado.
+     */
     @Test
-    @WithMockUser(username = "joao_teste") // Simula um utilizador autenticado
-    void calendarPageLoadsSuccessfullyForAuthenticatedUser() throws Exception {
-        // ARRANGE: Preparamos os nossos Mocks
-        User mockUser = new User("joao_teste", "joao@email.com", "senha123");
-        when(userService.requireByUsername("joao_teste")).thenReturn(mockUser);
+    @WithMockUser(username = "miguel")
+    void calendarPageLoadsSuccess() throws Exception {
+
+        // Preparar o utilizador autenticado
+        User mockUser = new User("miguel", "miguelou04@email.com", "benfica123");
+
+        // Simula a procura do utilizador autenticado
+        when(userService.requireByUsername("miguel")).thenReturn(mockUser);
+
         when(meetingService.calendarFor(mockUser)).thenReturn(List.of()); // Calendário vazio
         when(meetingService.pendingInvitesFor(mockUser)).thenReturn(List.of()); // Sem convites
 
-        // ACT & ASSERT: Fazemos o pedido GET e verificamos a resposta
+        //  GET para o calendário
         mockMvc.perform(get("/calendar"))
-                .andExpect(status().isOk()) // Espera HTTP 200 OK
-                .andExpect(view().name("calendar")) // Espera que o ficheiro HTML devolvido seja o "calendar"
-                .andExpect(model().attributeExists("user", "meetings", "pendingInvites", "icalHttpUrl")) // Verifica se as variáveis foram enviadas para o Thymeleaf
-                .andExpect(model().attribute("icalHttpUrl", "http://localhost:8080/ical/" + mockUser.getIcalToken() + ".ics"));
+                .andExpect(status().isOk()) //  200
+                .andExpect(view().name("calendar"))  // view retornada é correta
+                .andExpect(model().attributeExists("user", "meetings", "pendingInvites", "icalHttpUrl")) // atributios exitem
+                .andExpect(model().attribute("icalHttpUrl", "http://localhost:8080/ical/" + mockUser.getIcalToken() + ".ics")); // se for criado corretamen
     }
 
-    @Test
-    void calendarPageRedirectsToLoginWhenUnauthenticated() throws Exception {
-        // Como não usamos @WithMockUser aqui, o pedido é feito por um visitante anónimo.
 
+    /**
+     * Testa o acesso ao calendário  sem estar autenticado
+     */
+    @Test
+    void calendarPageRedirectsToLogin() throws Exception {
+
+        //  GET sem user autenticado
         mockMvc.perform(get("/calendar"))
-                .andExpect(status().is3xxRedirection()) // Espera um redirecionamento HTTP 302
-                .andExpect(redirectedUrlPattern("**/login")); // Espera ser atirado para a página de login
+                .andExpect(status().is3xxRedirection()) // 302
+                .andExpect(redirectedUrlPattern("**/login")); // redirect para login
     }
 }

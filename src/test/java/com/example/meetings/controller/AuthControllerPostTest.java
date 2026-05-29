@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// A MAGIA ESTÁ AQUI NA LINHA ABAIXO: Importamos o teu SecurityConfig!
+
 @WebMvcTest(controllers = AuthController.class)
 @Import(SecurityConfig.class)
 class AuthControllerPostTest {
@@ -27,49 +27,83 @@ class AuthControllerPostTest {
     @MockBean
     private UserService userService;
 
+
+
+    /**
+     * Testa se a página de login é carregada com sucesso
+     */
     @Test
-    void loginPageLoadsSuccessfully() throws Exception {
+    void loginPagesucces() throws Exception {
+        // Faz o get na pagina de login
         mockMvc.perform(get("/login"))
+                // 200
                 .andExpect(status().isOk())
+                // view retornada = login
                 .andExpect(view().name("login"));
     }
 
+    /**
+     * Testa se a página de registo é carregada com sucesso.
+     */
     @Test
-    void registerPageLoadsSuccessfully() throws Exception {
+    void registerPageSuccess() throws Exception {
+        // Faz get na pagina de registo
         mockMvc.perform(get("/register"))
+                // 200
                 .andExpect(status().isOk())
+                // view retornda = register
                 .andExpect(view().name("register"));
     }
 
+    /**
+     * Testa se a rota raiz redireciona para o calendário.
+     */
     @Test
-    void rootUrlRedirectsToCalendar() throws Exception {
+    void rootUrlRedirect() throws Exception {
+        // faz  GET para a rota padrao
         mockMvc.perform(get("/"))
+                // redireciado para calendario
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/calendar"));
     }
 
+    /**
+     * Testa o registo de um utilizador com dados válidos.
+     */
     @Test
-    void registerUserSuccessfullyRedirectsToLogin() throws Exception {
+    void registerUserSuccessRedirecLogin() throws Exception {
+
+        //  POST de registo com os parametros validos
         mockMvc.perform(post("/register")
-                        .param("username", "novo_utilizador")
-                        .param("email", "novo@email.com")
-                        .param("password", "seguranca123")
+                        .param("username", "Miguel")
+                        .param("email", "miguelou04@email.com")
+                        .param("password", "benfica123")
                         .with(csrf()))
+                // redirect para a pagina de login
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login?registered"));
     }
 
+
+    /**
+     * Testa o username já existe.
+     */
     @Test
-    void registerUserReturnsErrorViewWhenUsernameIsAlreadyTaken() throws Exception {
+    void registerUserReturnsError() throws Exception {
+
+        // Simula erro ao tentar registar um username já existente
         when(userService.register(anyString(), anyString(), anyString()))
                 .thenThrow(new IllegalArgumentException("Username already taken"));
 
+        // POST de registo
         mockMvc.perform(post("/register")
-                        .param("username", "joao_ja_existe")
-                        .param("email", "joao2@email.com")
-                        .param("password", "senha123")
+                        .param("username", "miguelexiste")
+                        .param("email", "miguel04@email.com")
+                        .param("password", "benfica123")
                         .with(csrf()))
+                // 200
                 .andExpect(status().isOk())
+                // view registo mas com o erro de ja existir
                 .andExpect(view().name("register"))
                 .andExpect(model().attribute("error", "Username already taken"));
     }
