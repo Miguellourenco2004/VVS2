@@ -24,52 +24,65 @@ class MeetingParticipantRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
 
+
+
+    /**
+     * Testa a pesquisa de participantes
+     * por utilizador e estado do convite
+     */
     @Test
-    void findByUserAndStatusReturnsCorrectParticipants() {
-        // ARRANGE
-        User organizer = new User("org", "org@email.com", "senha");
-        User invitee = new User("convidado", "conv@email.com", "senha");
-        entityManager.persist(organizer);
-        entityManager.persist(invitee);
+    void findByUserAndStatus() {
 
-        Meeting meeting1 = new Meeting("Reunião 1", "", Instant.now(), Instant.now().plusSeconds(3600), organizer);
-        Meeting meeting2 = new Meeting("Reunião 2", "", Instant.now(), Instant.now().plusSeconds(3600), organizer);
-        entityManager.persist(meeting1);
-        entityManager.persist(meeting2);
+        // Preparar users
+        User user = new User("Miguel", "miguelou04@email.com", "benfica");
+        User user1 = new User("roberto", "robs@email.com", "sporting");
+        entityManager.persist(user);
+        entityManager.persist(user1);
 
-        // O convidado aceita a Reunião 1, mas está Pendente na Reunião 2
-        entityManager.persist(new MeetingParticipant(meeting1, invitee, InviteStatus.ACCEPTED));
-        entityManager.persist(new MeetingParticipant(meeting2, invitee, InviteStatus.PENDING));
+        Meeting reuniao = new Meeting("Reunião 1", "", Instant.now(), Instant.now().plusSeconds(3600), user);
+        Meeting reuniao2 = new Meeting("Reunião 2", "", Instant.now(), Instant.now().plusSeconds(3600), user);
+        entityManager.persist(reuniao);
+        entityManager.persist(reuniao2);
+
+        // O convidado aceitou a primeira reunião e segunda ainda nao
+        entityManager.persist(new MeetingParticipant(reuniao, user1, InviteStatus.ACCEPTED));
+        entityManager.persist(new MeetingParticipant(reuniao2, user1, InviteStatus.PENDING));
         entityManager.flush();
 
-        // ACT: Queremos buscar apenas os convites PENDENTES do convidado
-        List<MeetingParticipant> pendingInvites = participantRepository.findByUserAndStatus(invitee, InviteStatus.PENDING);
+        // Convites pendentes
+        List<MeetingParticipant> pendingInvites = participantRepository.findByUserAndStatus(user1, InviteStatus.PENDING);
 
-        // ASSERT
+        //  verifica 1 reuniao pendende e que é adois
         assertEquals(1, pendingInvites.size());
         assertEquals("Reunião 2", pendingInvites.get(0).getMeeting().getTitle());
         assertEquals(InviteStatus.PENDING, pendingInvites.get(0).getStatus());
     }
 
+
+    /**
+     * Testa a pesquisa de participante
+     * através do ID da reunião e do ID do utilizador.
+     */
     @Test
-    void findByMeetingIdAndUserIdReturnsCorrectParticipant() {
-        // ARRANGE
-        User user = new User("teste", "teste@email.com", "senha");
+    void findByMeetingReturnsCorrectParticipant() {
+        // user
+        User user = new User("Miguel", "Miguelou04@email.com", "benfica");
         entityManager.persist(user);
 
-        Meeting meeting = new Meeting("Reunião X", "", Instant.now(), Instant.now().plusSeconds(3600), user);
+        // reuniao
+        Meeting meeting = new Meeting("Reunião trabalho", "", Instant.now(), Instant.now().plusSeconds(3600), user);
         entityManager.persist(meeting);
-
+        // Criar participante associado à reunião
         MeetingParticipant participant = new MeetingParticipant(meeting, user, InviteStatus.ACCEPTED);
         entityManager.persistAndFlush(participant);
 
         Long meetingId = meeting.getId();
         Long userId = user.getId();
 
-        // ACT
+        // pesquisar pelo id
         Optional<MeetingParticipant> found = participantRepository.findByMeetingIdAndUserId(meetingId, userId);
 
-        // ASSERT
+        // verificar se o id do parcipicate  esta presente  e id da reuinao
         assertTrue(found.isPresent());
         assertEquals(meetingId, found.get().getMeeting().getId());
         assertEquals(userId, found.get().getUser().getId());

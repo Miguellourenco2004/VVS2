@@ -26,36 +26,45 @@ class MeetingRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
 
+
+    /**
+     * Testa a pesquisa de reuniões do calendário.
+     *
+     * Deve devolver reuniões onde o utilizador
+     * é organizador ou participante com estado
+     * PENDING ou ACCEPTED.
+     */
     @Test
     void findCalendarMeetingsReturnsMeetingsWhereUserIsOrganizerOrAcceptedPendingParticipant() {
-        // ARRANGE: Preparar a base de dados com utilizadores e reuniões reais
-        User alice = new User("alice", "alice@email.com", "senha");
-        User bob = new User("bob", "bob@email.com", "senha");
-        entityManager.persist(alice);
-        entityManager.persist(bob);
+
+        // Preparar users
+        User Miguel = new User("Miguel", "Miguel@email.com", "senha");
+        User pilo = new User("pilo", "pilo@email.com", "senha");
+        entityManager.persist(Miguel);
+        entityManager.persist(pilo);
 
         Instant agora = Instant.now();
 
-        // 1. Reunião onde o Bob é o Organizador
-        Meeting reuniaoOrganizada = new Meeting("Reunião do Bob", "Desc", agora, agora.plus(1, ChronoUnit.HOURS), bob);
+        // Reunião pilo é organizador
+        Meeting reuniaoOrganizada = new Meeting("Reunião pilo", "Desc", agora, agora.plus(1, ChronoUnit.HOURS), pilo);
         entityManager.persist(reuniaoOrganizada);
 
-        // 2. Reunião onde a Alice organiza, e convida o Bob (Ele está PENDING)
-        Meeting reuniaoPendente = new Meeting("Convite Pendente", "Desc", agora, agora.plus(1, ChronoUnit.HOURS), alice);
-        reuniaoPendente.addParticipant(new MeetingParticipant(reuniaoPendente, bob, InviteStatus.PENDING));
+        // Reunião pilo tem convite pendente
+        Meeting reuniaoPendente = new Meeting("Convite Pendente", "Desc", agora, agora.plus(1, ChronoUnit.HOURS), Miguel);
+        reuniaoPendente.addParticipant(new MeetingParticipant(reuniaoPendente, pilo, InviteStatus.PENDING));
         entityManager.persist(reuniaoPendente);
 
-        // 3. Reunião onde a Alice organiza, e convida o Bob (Ele DECLINED) - ESTA NÃO DEVE APARECER!
-        Meeting reuniaoRecusada = new Meeting("Convite Recusado", "Desc", agora, agora.plus(1, ChronoUnit.HOURS), alice);
-        reuniaoRecusada.addParticipant(new MeetingParticipant(reuniaoRecusada, bob, InviteStatus.DECLINED));
+        // Reunião recusada pelo pilo
+        Meeting reuniaoRecusada = new Meeting("Convite Recusado", "Desc", agora, agora.plus(1, ChronoUnit.HOURS), Miguel);
+        reuniaoRecusada.addParticipant(new MeetingParticipant(reuniaoRecusada, pilo, InviteStatus.DECLINED));
         entityManager.persist(reuniaoRecusada);
 
-        entityManager.flush(); // Força a escrita das entidades na BD H2
+        entityManager.flush();
 
-        // ACT: Executar a query manual JPQL que queremos testar
-        List<Meeting> calendarioDoBob = meetingRepository.findCalendarMeetings(bob);
+        // Pesquisa reuniões visíveis no calendário do pilo
+        List<Meeting> calendarioDoBob = meetingRepository.findCalendarMeetings(pilo);
 
-        // ASSERT: Verificamos se a query filtrou corretamente
+        // verificar se aparecem aoenas duas reunioes
         assertEquals(2, calendarioDoBob.size()); // Apenas a "Reunião do Bob" e a "Convite Pendente"
 
         boolean temRecusada = calendarioDoBob.stream()
@@ -63,105 +72,118 @@ class MeetingRepositoryTest {
         assertFalse(temRecusada, "A query não deve devolver reuniões que o utilizador recusou!");
     }
 
+
+
+    /**
+     * Testa a pesquisa de reuniões
+     * ao mesmo tempo.
+     */
     @Test
-    void findOverlappingReturnsOnlyMeetingsWithinTimeWindow() {
-        // ARRANGE
-        User alice = new User("alice", "alice@email.com", "senha");
-        entityManager.persist(alice);
+    void findOverlapping() {
+        // Preparar user
+        User miguel = new User("miguel", "miguel@email.com", "benfica");
+        entityManager.persist(miguel);
 
-        Instant inicioJanela = Instant.parse("2026-01-01T10:00:00Z");
-        Instant fimJanela = Instant.parse("2026-01-01T12:00:00Z");
+        Instant inic = Instant.parse("2026-02-02T15:00:00Z");
+        Instant fim = Instant.parse("2026-02-02T17:00:00Z");
 
-        // Reunião totalmente dentro da janela (10:30 às 11:30)
+        // Reunião dentro da tempo
         Meeting dentro = new Meeting("Dentro", "Desc",
-                Instant.parse("2026-01-01T10:30:00Z"),
-                Instant.parse("2026-01-01T11:30:00Z"), alice);
+                Instant.parse("2026-01-01T15:30:00Z"),
+                Instant.parse("2026-01-01T16:30:00Z"), miguel);
         entityManager.persist(dentro);
 
-        // Reunião fora da janela (13:00 às 14:00)
+        //reuniao fora do tempo
         Meeting fora = new Meeting("Fora", "Desc",
-                Instant.parse("2026-01-01T13:00:00Z"),
-                Instant.parse("2026-01-01T14:00:00Z"), alice);
+                Instant.parse("2026-01-01T18:00:00Z"),
+                Instant.parse("2026-01-01T18:30:00Z"), miguel);
         entityManager.persist(fora);
 
         entityManager.flush();
 
-        // ACT
-        List<Meeting> overlapping = meetingRepository.findOverlapping(alice, inicioJanela, fimJanela);
+        // Pesquisa reuniões sobrepostas
+        List<Meeting> overlapping = meetingRepository.findOverlapping(miguel, inic, fim);
 
-        // ASSERT
+        // verificar que apenas aparece 1 reuniao valida e é a dentro
         assertEquals(1, overlapping.size());
         assertEquals("Dentro", overlapping.get(0).getTitle());
     }
 
+
+    /**
+     * Testa se as reuniões devolvidas
+     * são distintas e ordenadas por data.
+     */
     @Test
     void findCalendarMeetingsReturnsDistinctAndOrderedMeetings() {
-        // ARRANGE
-        User carlos = new User("carlos", "carlos@email.com", "senha");
-        entityManager.persist(carlos);
+        // Preparar user
+        User Miguel = new User("Miguel", "Miguel@email.com", "benfica");
+        entityManager.persist(Miguel);
 
         Instant agora = Instant.now();
+        // Reunião mais tarde
+        Meeting reuniaoTarde = new Meeting("Reunião Tarde", "", agora.plusSeconds(7200), agora.plusSeconds(10000), Miguel);
 
-        // Reunião 2 (Mais tarde)
-        Meeting reuniaoTarde = new Meeting("Reunião Tarde", "", agora.plusSeconds(7200), agora.plusSeconds(10000), carlos);
-        // O Carlos é organizador E participante (Isto causaria duplicação sem o DISTINCT)
-        reuniaoTarde.addParticipant(new MeetingParticipant(reuniaoTarde, carlos, InviteStatus.ACCEPTED));
+        reuniaoTarde.addParticipant(new MeetingParticipant(reuniaoTarde, Miguel, InviteStatus.ACCEPTED));
         entityManager.persist(reuniaoTarde);
 
-        // Reunião 1 (Mais cedo)
-        Meeting reuniaoCedo = new Meeting("Reunião Cedo", "", agora, agora.plusSeconds(3600), carlos);
-        reuniaoCedo.addParticipant(new MeetingParticipant(reuniaoCedo, carlos, InviteStatus.ACCEPTED));
+        // Reunião mais cedo
+        Meeting reuniaoCedo = new Meeting("Reunião Cedo", "", agora, agora.plusSeconds(3600), Miguel);
+        reuniaoCedo.addParticipant(new MeetingParticipant(reuniaoCedo, Miguel, InviteStatus.ACCEPTED));
         entityManager.persist(reuniaoCedo);
 
         entityManager.flush();
 
-        // ACT
-        List<Meeting> meetings = meetingRepository.findCalendarMeetings(carlos);
+        // pesuisar
+        List<Meeting> meetings = meetingRepository.findCalendarMeetings(Miguel);
 
-        // ASSERT
-        assertEquals(2, meetings.size(), "O DISTINCT deve garantir que as reuniões não vêm duplicadas");
-        // Verifica a ordenação do ORDER BY m.startTime
+        // Verifica ausência de duplicados e ordenação por m.startTime
+        assertEquals(2, meetings.size());
         assertEquals("Reunião Cedo", meetings.get(0).getTitle());
         assertEquals("Reunião Tarde", meetings.get(1).getTitle());
     }
 
+    /**
+     * Testa a deteção de sobreposições parciais
+     * entre reuniões e uma janela temporal.
+     */
     @Test
-    void findOverlappingDetectsPartialOverlaps() {
-        // ARRANGE
-        User ana = new User("ana", "ana@email.com", "senha");
-        entityManager.persist(ana);
+    void returnsPartialOverlaps() {
+        // Preparar user
+        User miguel = new User("miguel", "miguel@email.com", "benfica");
+        entityManager.persist(miguel);
 
-        // A nossa janela de pesquisa é das 12h00 às 14h00
-        Instant inicioPesquisa = Instant.parse("2026-05-10T12:00:00Z");
-        Instant fimPesquisa = Instant.parse("2026-05-10T14:00:00Z");
+        // Janela temporal
+        Instant inicioPesquisa = Instant.parse("2026-05-20T12:00:00Z");
+        Instant fimPesquisa = Instant.parse("2026-05-20T14:00:00Z");
 
-        // 1. Interceção Parcial: Começa às 11h e acaba às 13h (Apanha a primeira hora da janela)
-        Meeting overlapInicio = new Meeting("Overlap Início", "",
+        // Sobreposição no início da janela
+        Meeting início = new Meeting("Início", "",
                 Instant.parse("2026-05-10T11:00:00Z"),
-                Instant.parse("2026-05-10T13:00:00Z"), ana);
-        entityManager.persist(overlapInicio);
+                Instant.parse("2026-05-10T13:00:00Z"), miguel);
+        entityManager.persist(início);
 
-        // 2. Interceção Parcial: Começa às 13h e acaba às 15h (Apanha a última hora da janela)
-        Meeting overlapFim = new Meeting("Overlap Fim", "",
+        // Sobreposição no fim da janela
+        Meeting fim = new Meeting("Fim", "",
                 Instant.parse("2026-05-10T13:00:00Z"),
-                Instant.parse("2026-05-10T15:00:00Z"), ana);
-        entityManager.persist(overlapFim);
+                Instant.parse("2026-05-10T15:00:00Z"), miguel);
+        entityManager.persist(fim);
 
-        // 3. Sem Interceção: Acaba exatamente quando a janela começa (11h às 12h)
+        // Reunião que apenas toca no limite da janela do começo
         Meeting encostada = new Meeting("Encostada", "",
                 Instant.parse("2026-05-10T11:00:00Z"),
-                Instant.parse("2026-05-10T12:00:00Z"), ana);
+                Instant.parse("2026-05-10T12:00:00Z"), miguel);
         entityManager.persist(encostada);
 
         entityManager.flush();
 
-        // ACT
-        List<Meeting> overlaps = meetingRepository.findOverlapping(ana, inicioPesquisa, fimPesquisa);
+        // Pesquisa dentro do limiar
+        List<Meeting> overlaps = meetingRepository.findOverlapping(miguel, inicioPesquisa, fimPesquisa);
 
-        // ASSERT
+        // Verifica se apenas 2 reuniões foram devolvidas e as certas
         assertEquals(2, overlaps.size());
-        assertTrue(overlaps.stream().anyMatch(m -> m.getTitle().equals("Overlap Início")));
-        assertTrue(overlaps.stream().anyMatch(m -> m.getTitle().equals("Overlap Fim")));
-        assertFalse(overlaps.stream().anyMatch(m -> m.getTitle().equals("Encostada")), "Reuniões que tocam nos limites não devem sobrepor");
+        assertTrue(overlaps.stream().anyMatch(m -> m.getTitle().equals("Início")));
+        assertTrue(overlaps.stream().anyMatch(m -> m.getTitle().equals("Fim")));
+        assertFalse(overlaps.stream().anyMatch(m -> m.getTitle().equals("Encostada")));
     }
 }

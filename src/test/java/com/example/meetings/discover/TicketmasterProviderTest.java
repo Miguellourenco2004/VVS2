@@ -168,7 +168,7 @@ class TicketmasterProviderTest {
         // Simula resposta API
         stubFor(get(urlPathEqualTo("/events.json"))
                 .withQueryParam("keyword", equalTo("pcp"))
-                .withQueryParam("apikey", equalTo("fake-api-key"))
+                .withQueryParam("apikey", equalTo("fake-api-key"))   // ????
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withStatus(200)

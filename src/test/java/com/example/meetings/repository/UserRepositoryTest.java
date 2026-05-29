@@ -21,54 +21,74 @@ class UserRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
 
+    /**
+     * Testa a pesquisa de utilizadores
+     * pelo username.
+     */
     @Test
-    void findByUsernameReturnsUserWhenExists() {
-        // ARRANGE
-        User user = new User("joao_db", "joao@email.com", "senha");
+    void findByUsername() {
+        // preparar user
+        User user = new User("Miguel", "miguelou04@email.com", "benfica");
         entityManager.persistAndFlush(user);
 
-        // ACT
-        Optional<User> found = userRepository.findByUsername("joao_db");
+        // pesquiser o user
+        Optional<User> found = userRepository.findByUsername("Miguel");
 
-        // ASSERT
+        //   // Verifica se o utilizador foi encontrado
         assertTrue(found.isPresent());
         assertEquals("joao@email.com", found.get().getEmail());
     }
 
+
+    /**
+     * Testa a verificação de usernames
+     * já existentes ou nao  na base de dados.
+     */
     @Test
     void existsByUsernameReturnsTrueWhenUsernameIsTaken() {
-        // ARRANGE
-        entityManager.persistAndFlush(new User("maria", "maria@email.com", "senha"));
+        // preparar user
+        entityManager.persistAndFlush(new User("miguel", "miguelou04@email.com", "benfica"));
 
-        // ACT & ASSERT
-        assertTrue(userRepository.existsByUsername("maria"));
-        assertFalse(userRepository.existsByUsername("utilizador_inexistente"));
+        // Verifica que priemiro user existe e segundo nao
+        assertTrue(userRepository.existsByUsername("miguel"));
+        assertFalse(userRepository.existsByUsername("macaco"));
     }
 
+
+    /**
+     * Testa a pesquisa de utilizadores
+     * através do token iCal.
+     */
     @Test
     void findByIcalTokenReturnsUserCorrectly() {
-        // ARRANGE
-        User user = new User("carlos", "carlos@email.com", "senha");
+        // preparar user
+        User user = new User("Miguel", "miguelou04@email.com", "benfica");
         entityManager.persistAndFlush(user);
         String generatedToken = user.getIcalToken(); // O token é gerado no construtor
 
-        // ACT
+        // pesquisa pelo token
         Optional<User> found = userRepository.findByIcalToken(generatedToken);
 
-        // ASSERT
+        // verifica se foi o user correto encontrado
         assertTrue(found.isPresent());
-        assertEquals("carlos", found.get().getUsername());
+        assertEquals("Miguel", found.get().getUsername());
     }
 
+
+    /**
+     * Testa a inserção de
+     * doius users com o mesmo
+     * username
+     */
     @Test
-    void savingUserWithDuplicateUsernameThrowsException() {
-        // ARRANGE: Inserimos o primeiro utilizador
-        entityManager.persistAndFlush(new User("duplicado", "um@email.com", "senha"));
+    void UserWithDuplicateUsername() {
+        //  preprarr user 1
+        entityManager.persistAndFlush(new User("miguel", "um@email.com", "benfica"));
 
-        // ACT & ASSERT: Tentamos inserir um segundo com o mesmo username
-        User user2 = new User("duplicado", "dois@email.com", "senha");
+        // preprar user 2
+        User user2 = new User("miguel", "dois@email.com", "benfica");
 
-        // Como a coluna tem unique=true, a base de dados tem de rejeitar e atirar um erro de integridade!
+        //   // Verifica se a base de dados rejeita o duplicado unique=true
         assertThrows(DataIntegrityViolationException.class, () -> {
             userRepository.saveAndFlush(user2);
         });
