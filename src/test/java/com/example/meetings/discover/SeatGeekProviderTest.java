@@ -142,17 +142,20 @@ class SeatGeekProviderTest {
         assertTrue(results.isEmpty());
     }
 
+
+    /**
+     * Testa  API devolve erro.
+     */
     @Test
     void searchReturnsEmptyListWhenApiFails() {
-        // ARRANGE: Simula um erro 500 do servidor do SeatGeek
+        // Simula erro 500 da API
         stubFor(get(urlPathMatching("/events.*"))
                 .willReturn(aResponse().withStatus(500)));
 
-        // ACT
+        // pesquisa
         List<DiscoveredEvent> results = seatGeekProvider.search("qualquercoisa");
 
-        // ASSERT: O catch (Exception ex) no teu código captura a falha e devolve lista vazia,
-        // evitando que a aplicação inteira vá abaixo.
+        //  O catch captura a falha e devolve lista vazia
         assertTrue(results.isEmpty());
     }
 }

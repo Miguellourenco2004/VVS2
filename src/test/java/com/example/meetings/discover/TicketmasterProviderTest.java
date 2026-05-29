@@ -13,6 +13,12 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Testes de integração do provider Ticketmaster.
+ *
+ * Utiliza WireMock para simular respostas da API externa
+ * sem necessidade de chamadas reais ao Ticketmaster.
+ */
 @SpringBootTest(properties = {
         "app.discover.ticketmaster.api-key=fake-api-key",
         "app.discover.ticketmaster.country-code=PT",
@@ -27,6 +33,7 @@ class TicketmasterProviderTest {
 
     @BeforeEach
     void setUp() {
+        // Inicializa servidor WireMock
         wireMockServer = new WireMockServer(8089);
         wireMockServer.start();
         WireMock.configureFor("localhost", 8089);
@@ -37,21 +44,27 @@ class TicketmasterProviderTest {
         wireMockServer.stop();
     }
 
+
+
+    /**
+     * Testa a pesquisa de eventos
+     * quando a API responde corretamente.
+     */
     @Test
-    void searchReturnsDiscoveredEventsWhenApiIsSuccessful() {
-        // ARRANGE: O JSON aninhado típico do Ticketmaster
+    void searchReturnsEventssSuccessful() {
+        // Preparar JSON  da API Ticketmaster
         String jsonResponse = """
             {
               "_embedded": {
                 "events": [
                   {
-                    "id": "tm-123",
-                    "name": "Concerto Taylor Swift",
-                    "url": "https://ticketmaster.pt/taylor",
-                    "info": "The Eras Tour",
+                    "id": "tm-555",
+                    "name": "Concerto Eminem",
+                    "url": "https://ticketmaster.pt/rap",
+                    "info": "The real slim",
                     "dates": {
                       "start": {
-                        "dateTime": "2026-05-24T19:00:00Z"
+                        "dateTime": "2026-06-24T17:30:00Z"
                       }
                     },
                     "_embedded": {
@@ -65,8 +78,10 @@ class TicketmasterProviderTest {
             }
             """;
 
+        // Quando existir pedido GET para /events.json
+        // com os parâmetros corretos, devolve JSON mockado
         stubFor(get(urlPathEqualTo("/events.json"))
-                .withQueryParam("keyword", equalTo("taylor"))
+                .withQueryParam("keyword", equalTo("eminem"))
                 .withQueryParam("apikey", equalTo("fake-api-key"))
                 .withQueryParam("countryCode", equalTo("PT"))
                 .willReturn(aResponse()
@@ -74,36 +89,45 @@ class TicketmasterProviderTest {
                         .withStatus(200)
                         .withBody(jsonResponse)));
 
-        // ACT
+        // Pesquisa
         List<DiscoveredEvent> results = ticketmasterProvider.search("taylor");
 
-        // ASSERT
+        // Verificar se tem o resultado e se oes dados esta corretos
         assertEquals(1, results.size());
         DiscoveredEvent event = results.get(0);
 
         assertEquals("Ticketmaster", event.source());
-        assertEquals("tm-123", event.externalId());
-        assertEquals("Concerto Taylor Swift", event.title());
+        assertEquals("tm-555", event.externalId());
+        assertEquals("Concerto Eminem", event.title());
         assertEquals("Estádio da Luz", event.venue());
         assertNotNull(event.start());
     }
 
+    /**
+     * Testa quando a API devolve erro.
+     */
     @Test
-    void searchReturnsEmptyListWhenApiFails() {
-        // Simula um erro 500 do servidor do Ticketmaster
+    void searchReturnsEmptyListApiFails() {
+        // Simula um erro 500 do
         stubFor(get(urlPathMatching("/events.json.*"))
                 .willReturn(aResponse().withStatus(500)));
 
-        List<DiscoveredEvent> results = ticketmasterProvider.search("taylor");
+        // pesquisa
+        List<DiscoveredEvent> results = ticketmasterProvider.search("eminem");
 
-        // O código não deve rebentar (crash), mas sim devolver uma lista vazia
+        // O catch deve impedir crash e devolver lista vazia
         assertTrue(results.isEmpty());
     }
 
 
+    /**
+     * Testa provider
+     * não está configurado.
+     */
     @Test
-    void searchReturnsEmptyListWhenProviderIsNotConfigured() {
-        // ARRANGE: Criamos uma instância manual com a API Key vazia.
+    void searchReturnsroviderNotConfigured() {
+        // Preparar provider sem API Key
+        // Assim testamos a proteção do método isConfigured()
         // Como o Spring injeta as propriedades no arranque, a melhor forma de testar
         // a ausência da chave num teste específico é instanciar a classe diretamente.
         TicketmasterProvider unconfiguredProvider = new TicketmasterProvider(
@@ -112,43 +136,48 @@ class TicketmasterProviderTest {
                 "http://localhost:8089"
         );
 
-        // ACT
+      // pesquisa
         List<DiscoveredEvent> results = unconfiguredProvider.search("taylor");
 
-        // ASSERT: O método isConfigured() deve bloquear a execução e devolver lista vazia
+        // Verifica se devolve lista vaziam étodo isConfigured() funcionou
         assertTrue(results.isEmpty());
     }
 
+
+    /**
+     * Testa o evento
+     * que não possui data de início.
+     */
     @Test
     void searchIgnoresEventsWithoutStartDate() {
-        // ARRANGE: Um evento "TBA" (To Be Announced), onde o Ticketmaster não envia
-        // o bloco 'dates' ou a 'dateTime' está ausente.
+        // Preparar JSON sem campo dateTime
         String jsonResponseWithoutDate = """
             {
               "_embedded": {
                 "events": [
                   {
-                    "id": "tm-999",
-                    "name": "Concerto Secreto",
-                    "url": "https://ticketmaster.pt/secreto"
+                    "id": "tm-888",
+                    "name": "Tertulia do PCP",
+                    "url": "https://ticketmaster.pt/pcp"
                   }
                 ]
               }
             }
             """;
 
+        // Simula resposta API
         stubFor(get(urlPathEqualTo("/events.json"))
-                .withQueryParam("keyword", equalTo("secreto"))
+                .withQueryParam("keyword", equalTo("pcp"))
                 .withQueryParam("apikey", equalTo("fake-api-key"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withStatus(200)
                         .withBody(jsonResponseWithoutDate)));
 
-        // ACT
+        // pesquisa
         List<DiscoveredEvent> results = ticketmasterProvider.search("secreto");
 
-        // ASSERT: Como o start é null, o código faz "continue" e a lista volta vazia.
+        //verifica que sem data time , a lista vai retornar vazia
         assertTrue(results.isEmpty());
     }
 }
