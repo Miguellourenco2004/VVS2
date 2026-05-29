@@ -123,7 +123,7 @@ class DiscoveryControllerTest {
      */
     @Test
     @WithMockUser(username = "Miguel")
-    void discoverPageLoadsWithoutSearchQuery() throws Exception {
+    void discoverPageWithoutSearch() throws Exception {
 
         // providers configurados
         when(discoveryService.providers())
@@ -143,7 +143,7 @@ class DiscoveryControllerTest {
      */
     @Test
     @WithMockUser(username = "Miguel")
-    void discoverPageNoProvidersAreConfigured() throws Exception {
+    void discoverPageNoProviders() throws Exception {
 
         //  providers  vazios = sem eventos
         when(discoveryService.providers())
@@ -163,7 +163,7 @@ class DiscoveryControllerTest {
      */
     @Test
     @WithMockUser(username = "Miguel")
-    void copyEventFailsWithBadRequestWhenRequiredParamsAreMissing() throws Exception {
+    void copyEventFailsParamsMissing() throws Exception {
 
         //  POST sem todos ps parametros obrigatorios
         mockMvc.perform(post("/discover/copy")
