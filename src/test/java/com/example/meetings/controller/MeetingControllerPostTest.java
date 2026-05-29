@@ -21,7 +21,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @WebMvcTest(controllers = MeetingController.class)
 @Import(SecurityConfig.class)
 class MeetingControllerPostTest {
@@ -39,106 +38,143 @@ class MeetingControllerPostTest {
 
     @BeforeEach
     void setUp() {
-        // Como o controller exige um organizador vindo do principal, preparamos este mock globalmente
-        mockOrganizer = new User("joao_teste", "joao@email.com", "hash_senha");
-        when(userService.requireByUsername("joao_teste")).thenReturn(mockOrganizer);
+
+        // user
+        mockOrganizer = new User(
+                "Miguel",
+                "miguelou04@email.com",
+                "benfica"
+        );
+
+
+        when(userService.requireByUsername("Niguel"))
+                .thenReturn(mockOrganizer);
     }
 
     /**
-     * TESTE 1: Caminho Feliz - Submissão bem-sucedida de uma proposta de reunião.
+     * Testa a criação de uma reunião com dados válidos.
      */
     @Test
-    @WithMockUser(username = "joao_teste")
-    void proposeMeetingSuccessfullyRedirectsToCalendar() throws Exception {
-        // ACT & ASSERT
-        mockMvc.perform(post("/meetings/new")
-                        .param("title", "Reunião de Alinhamento")
-                        .param("description", "Discussão do Projeto")
-                        .param("start", "2026-06-15T14:00")
-                        .param("end", "2026-06-15T15:30")
-                        .param("invitees", "alice, bob")
-                        .with(csrf())) // OBRIGATÓRIO: Contorna a proteção CSRF do Spring Security
+    @WithMockUser(username = "Miguel")
+    void proposeMeetingSuccess() throws Exception {
 
-                .andExpect(status().is3xxRedirection()) // Espera HTTP 302
-                .andExpect(redirectedUrl("/calendar")); // Redireciona para o calendário
+        // POST para criar reunião
+        mockMvc.perform(post("/meetings/new")
+                        .param("title", "Reunião para lol")
+                        .param("description", "novas tecnoligoas portuguesas ")
+                        .param("start", "2026-06-05T16:00")
+                        .param("end", "2026-06-05T17:30")
+                        .param("invitees", "Pai, mae")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/calendar"));    //  redireciona para o calendário
     }
 
     /**
-     * TESTE 2: Captura de Erro - Data de fim anterior à data de início.
+     * Testa oa data final é inválida é anterior a inicial
      */
     @Test
-    @WithMockUser(username = "joao_teste")
-    void proposeMeetingReturnsErrorViewWhenDatesAreInvalid() throws Exception {
-        // ARRANGE: Forçamos o serviço a lançar a exceção de negócio quando as datas estão erradas
-        when(meetingService.propose(any(), anyString(), anyString(), any(), any(), anyList()))
-                .thenThrow(new IllegalArgumentException("End time must be after start time"));
+    @WithMockUser(username = "Miguel")
+    void proposeMeetingErrorDatesAreInvalid() throws Exception {
 
-        // ACT & ASSERT
+        // data inválida
+        when(meetingService.propose(
+                any(),
+                anyString(),
+                anyString(),
+                any(),
+                any(),
+                anyList()
+        )).thenThrow(new IllegalArgumentException(
+                "o tempo final nao pode ser anterior "
+        ));
+
+        //  POST com a data inválida
         mockMvc.perform(post("/meetings/new")
-                        .param("title", "Reunião de Retrospetiva")
-                        .param("description", "Erro de digitação nas datas")
+                        .param("title", "CSGO ?")
+                        .param("description", "cs com os cria")
                         .param("start", "2026-06-15T16:00")
-                        .param("end", "2026-06-15T15:00") // Fim antes do Início!
-                        .param("invitees", "alice")
+                        .param("end", "2026-06-15T15:00")
+                        .param("invitees", "roberto")
                         .with(csrf()))
-
-                .andExpect(status().isOk()) // Não dá crash 500, devolve a página (200 OK)
-                .andExpect(view().name("propose")) // Mantém o utilizador no formulário
-                .andExpect(model().attribute("error", "End time must be after start time")) // Mensagem de erro capturada!
-                .andExpect(model().attribute("title", "Reunião de Retrospetiva")); // Dados originais mantidos nos inputs
-    }
-
-    /**
-     * TESTE 3: Captura de Erro - Convidado não registado no sistema.
-     */
-    @Test
-    @WithMockUser(username = "joao_teste")
-    void proposeMeetingReturnsErrorViewWhenInviteeIsUnknown() throws Exception {
-        // ARRANGE: Forçamos o serviço a lançar o erro de utilizador desconhecido
-        when(meetingService.propose(any(), anyString(), any(), any(), any(), anyList()))
-                .thenThrow(new IllegalArgumentException("Unknown invitee: carlos_fantasma"));
-
-        // ACT & ASSERT
-        mockMvc.perform(post("/meetings/new")
-                        .param("title", "Sessão Brainstorm")
-                        .param("start", "2026-06-16T10:00")
-                        .param("end", "2026-06-16T11:00")
-                        .param("invitees", "carlos_fantasma")
-                        .with(csrf()))
-
-                .andExpect(status().isOk())
+                .andExpect(status().isOk())  // 200
                 .andExpect(view().name("propose"))
-                .andExpect(model().attribute("error", "Unknown invitee: carlos_fantasma"));
+                // verifica se a mensagem de erro existe
+                .andExpect(model().attribute("error", "End time must be after start time"))
+
+                .andExpect(model().attribute("title",    "o tempo final nao pode ser anterior "));
     }
 
-
     /**
-     * TESTE EXTRA 4: Carregamento inicial da página de propor reunião
+     * Testa convidar um convidado que não existente
      */
     @Test
-    @WithMockUser(username = "joao")
-    void proposeFormLoadsSuccessfully() throws Exception {
+    @WithMockUser(username = "Miguel")
+    void proposeMeetingError() throws Exception {
+
+        // convidado desconhecido
+        when(meetingService.propose(
+                any(),
+                anyString(),
+                any(),
+                any(),
+                any(),
+                anyList()
+        )).thenThrow(new IllegalArgumentException(
+                "Convidado nao existe"
+        ));
+
+        //  POST com convidado inválido
+        mockMvc.perform(post("/meetings/new")
+                        .param("title", "Projeto VVS")
+                        .param("start", "2026-06-12T12:00")
+                        .param("end", "2026-06-12T14:00")
+                        .param("invitees", "pino")
+                        .with(csrf()))
+                .andExpect(status().isOk())  // 200
+                .andExpect(view().name("propose"))
+
+                // Verifica se a mensagem de erro esta presente
+                .andExpect(model().attribute("error", "Convidado nao existe"));
+    }
+
+    /**
+     * Testa o carregamento da página de proposta.
+     */
+    @Test
+    @WithMockUser(username = "Miguel")
+    void proposeFormLoads() throws Exception {
+
+        // GET para o formulário
         mockMvc.perform(get("/meetings/new"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("propose")); // Devolve o HTML "propose.html"
+                .andExpect(status().isOk()) // 200
+                .andExpect(view().name("propose"));
     }
 
     /**
-     * TESTE EXTRA 5: Responder a um convite (Aceitar)
+     * Testa a aceitar contive de reuniao
      */
     @Test
-    @WithMockUser(username = "joao")
-    void respondToInviteSuccessfullyRedirectsToCalendar() throws Exception {
-        // ARRANGE: Mock do utilizador
-        User mockUser = new User("joao", "joao@email.com", "senha123");
-        when(userService.requireByUsername("joao")).thenReturn(mockUser);
+    @WithMockUser(username = "Miguel")
+    void respondInviteSuccess() throws Exception {
 
-        // ACT & ASSERT: Simula o POST para aceitar a reunião com ID 99
+        //  user
+        User mockUser = new User(
+                "Miguel",
+                "Miguelou04.com",
+                "benfica123"
+        );
+
+
+        when(userService.requireByUsername("Miguel"))
+                .thenReturn(mockUser);
+
+        //  POST para aceitar convite
         mockMvc.perform(post("/meetings/99/respond")
                         .param("action", "accept")
                         .with(csrf()))
-
+                // Verifica se redireciona para o calendário
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/calendar")); // Depois de responder, volta ao calendário
+                .andExpect(redirectedUrl("/calendar"));
     }
 }

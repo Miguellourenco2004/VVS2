@@ -20,8 +20,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-@WebMvcTest(controllers = ICalController.class, properties = "app.base-url=http://localhost:8080")
+@WebMvcTest(
+        controllers = ICalController.class,
+        properties = "app.base-url=http://localhost:8080"
+)
 @Import(SecurityConfig.class)
 class ICalControllerTest {
 
@@ -37,31 +39,61 @@ class ICalControllerTest {
     @MockBean
     private ICalService icalService;
 
+    /**
+     * Testa a geração do ficheiro iCal
+     * para um token válido.
+     */
     @Test
-    void feedReturnsCalendarFileForValidToken() throws Exception {
-        // ARRANGE
-        User mockUser = new User("joao", "joao@email.com", "senha123");
-        String fakeToken = "abc-123-token";
+    void ReturnsCalendarForValidToken() throws Exception {
 
-        when(userRepository.findByIcalToken(fakeToken)).thenReturn(Optional.of(mockUser));
-        when(meetingService.calendarFor(mockUser)).thenReturn(List.of());
-        when(icalService.render(eq(mockUser), any())).thenReturn("BEGIN:VCALENDAR\nEND:VCALENDAR");
+        // user
+        User mockUser = new User(
+                "Miguel",
+                "miguelou04@email.com",
+                "benfica"
+        );
 
-        // ACT & ASSERT: Fazemos o GET público
+        // token
+        String fakeToken = "toker";
+
+
+        // preprar teste
+        when(userRepository.findByIcalToken(fakeToken))
+                .thenReturn(Optional.of(mockUser));
+
+
+        when(meetingService.calendarFor(mockUser))
+                .thenReturn(List.of());
+
+
+        when(icalService.render(eq(mockUser), any()))
+                .thenReturn("BEGIN:VCALENDAR\nEND:VCALENDAR");
+
+
+
+        // GET para o  iCal
         mockMvc.perform(get("/ical/" + fakeToken + ".ics"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith("text/calendar; charset=UTF-8")) // Verifica se é ficheiro de calendário
-                .andExpect(header().string("Content-Disposition", "inline; filename=\"meetings.ics\"")) // Verifica o cabeçalho de download
-                .andExpect(content().string("BEGIN:VCALENDAR\nEND:VCALENDAR")); // Verifica o conteúdo bruto
+
+                .andExpect(status().isOk())  // 200
+                .andExpect(content().contentTypeCompatibleWith("text/calendar; charset=UTF-8"))   //  content type ==  calendário
+                .andExpect(header().string("Content-Disposition", "inline; filename=\"meetings.ics\""))
+                //conteúdo do ficheiro
+                .andExpect(content().string("BEGIN:VCALENDAR\nEND:VCALENDAR"));
+
     }
 
+    /**
+     * Testa  o token iCal invalido.
+     */
     @Test
-    void feedReturns404NotFoundForInvalidToken() throws Exception {
-        // ARRANGE: A base de dados não encontra nenhum utilizador com este token falso
-        when(userRepository.findByIcalToken("token-inventado")).thenReturn(Optional.empty());
+    void ReturnsNotFoundForInvalidToken() throws Exception {
 
-        // ACT & ASSERT: Como o Controller atira uma ResponseStatusException(HttpStatus.NOT_FOUND), esperamos o status 404
+        // tockeen invalido
+        when(userRepository.findByIcalToken("token-inventado"))
+                .thenReturn(Optional.empty());
+
+        // GET com token inválido
         mockMvc.perform(get("/ical/token-inventado.ics"))
-                .andExpect(status().isNotFound()); // HTTP 404
+                .andExpect(status().isNotFound()); // 404
     }
 }
