@@ -17,6 +17,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +32,10 @@ import com.example.meetings.discover.EventProvider;
 import com.example.meetings.repository.MeetingParticipantRepository;
 import com.example.meetings.repository.MeetingRepository;
 import com.example.meetings.repository.UserRepository;
-
+// ACABAR COM OS HELPERDS
 /**
  * End-to-End tests using Selenium WebDriver and a dedicated test database
- * Chrome runs in headless mode
+ * Firefox runs in headless mode
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
@@ -50,7 +52,7 @@ public class EndToEndTest {
     @Autowired private MeetingRepository meetingRepository;
     @Autowired private MeetingParticipantRepository participantRepository;
 
-    // 👇 O Spring agora sabe exatamente qual o bean a substituir!
+
     @MockBean(name = "ticketmasterProvider")
     private EventProvider mockEventProvider;
 
@@ -61,19 +63,21 @@ public class EndToEndTest {
         return "http://localhost:" + port;
     }
 
+    /**
+     * Setup ao firex fox para exevutar os testes
+     *
+     */
     @BeforeEach
     void setUp() {
-        // Clear database manually — avoids restarting the Spring context
-        // which would change the port and invalidate the browser session
+
         participantRepository.deleteAll();
         meetingRepository.deleteAll();
         userRepository.deleteAll();
 
-        ChromeOptions options = new ChromeOptions();
+        FirefoxOptions options = new FirefoxOptions();
         options.addArguments("--headless");
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        driver = new ChromeDriver(options);
+
+        driver = new FirefoxDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(5));
     }
 
@@ -122,258 +126,334 @@ public class EndToEndTest {
         ));
     }
 
-    private void registerAndLogin(String username, String email, String password) {
-        register(username, email, password);
-        wait.until(ExpectedConditions.urlContains("/login"));
-        login(username, password);
-        wait.until(ExpectedConditions.urlContains("/calendar"));
-    }
 
-    private void setDateTimeLocal(String id, String value) {
-        WebElement el = driver.findElement(By.id(id));
-        ((JavascriptExecutor) driver).executeScript(
-                // 1. Change type to text to completely disable HTML5 browser validation
-                "arguments[0].type = 'text';" +
-                        // 2. Set the value
-                        "arguments[0].value = arguments[1];",
-                el, value
-        );
-    }
 
-    private void submitProposalForm() {
-        ((JavascriptExecutor) driver).executeScript(
-                "document.querySelector('form[action*=\"meetings\"]').submit();"
-        );
-    }
-
-    // ================= TESTES =================
-
+    /**
+     * Testa  o registo com um utilizador que ja existe
+     *
+     */
     @Test
-    void register_Register_Success() {
-        register("nuno", "nuno@gmail.pt", "password123");
+    void registerErrorUsernameAlreadyExists() {
 
-        wait.until(ExpectedConditions.urlContains("/login"));
-        assertTrue(driver.getPageSource().contains("Account created"));
-    }
+        // Registar  user
+        register("Miguel", "Miguelou04@gmail.com", "Benfica123");
 
-    @Test
-    void register_UsernameAlreadyExists() {
-        register("nuno", "nuno@gmail.pt", "password123");
-
+        // registar outro user com o mesmo username
         driver.get(baseUrl() + "/register");
+
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username")));
-        driver.findElement(By.id("username")).sendKeys("nuno");
-        driver.findElement(By.id("email")).sendKeys("other@gmail.pt");
-        driver.findElement(By.id("password")).sendKeys("password456");
+        driver.findElement(By.id("username")).sendKeys("Miguel");
+        driver.findElement(By.id("email")).sendKeys("other@gmail.com");
+        driver.findElement(By.id("password")).sendKeys("Benfica123");
         driver.findElement(By.cssSelector("button[type=submit]")).click();
 
+        // Verificar se o deu erro a restirar o segundo devido ao mesmo user
         wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".error")));
         assertTrue(driver.getPageSource().contains("Username already taken"));
         assertTrue(driver.getCurrentUrl().contains("/register"));
     }
 
+
+
+
+    /**
+     * Testa o login mas colocando cardencias incorretas
+     *
+     */
     @Test
-    void login_RedirectsToCalendar() {
-        registerAndLogin("nuno", "nuno@gmail.pt", "password123");
+    void loginShowsErrorWhenCredentialsAreInvalid()  {
+        // Registar user
+        register("Miguel", "Miguelou04@gmail.com", "Benfica123");
 
-        assertTrue(driver.getCurrentUrl().contains("/calendar"));
-        assertTrue(driver.getPageSource().contains("Your calendar"));
-    }
 
-    @Test
-    void login_WrongCredentials() {
-        register("nuno", "nuno@gmail.pt", "password123");
-
+        // Tentar login com a pass errada
         driver.get(baseUrl() + "/login");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username")));
-        driver.findElement(By.id("username")).sendKeys("nuno");
-        driver.findElement(By.id("password")).sendKeys("wrongpassword");
+        driver.findElement(By.id("username")).sendKeys("Miguel");
+        driver.findElement(By.id("password")).sendKeys("ola");
         driver.findElement(By.cssSelector("button[type=submit]")).click();
 
+
+        // verifcar que da erro ao logar por pass errada
         wait.until(ExpectedConditions.urlContains("error"));
         assertTrue(driver.getPageSource().contains("Invalid username or password"));
+
     }
 
+
+
+
+    /**
+     * Testa a criação de reuniões
+     */
+    /**
+     * Testa a criação de reuniões
+     */
     @Test
-    void calendar_ShouldRedirectToLogin_WhenUnauthenticated() {
-        driver.get(baseUrl() + "/calendar");
+    void proposeMeetingCreatesMeeting() {
 
-        wait.until(ExpectedConditions.urlContains("/login"));
-        assertTrue(driver.getCurrentUrl().contains("/login"));
-    }
-
-    @Test
-    void calendar_DisplayUsername() {
-        registerAndLogin("nuno", "nuno@gmail.pt", "password123");
-
+        // Registar e autenticar user
+        register("Miguel", "Miguelou04@gmail.com", "Benfica123");
+        login("Miguel", "Benfica123");
         wait.until(ExpectedConditions.urlContains("/calendar"));
-        assertTrue(driver.getPageSource().contains("nuno"));
-        assertTrue(driver.getPageSource().contains("Your calendar"));
-    }
 
-    @Test
-    void proposeMeeting_Success() {
-        registerAndLogin("nuno", "nuno@gmail.pt", "password123");
-
+        // marcar uma reuniao
         driver.get(baseUrl() + "/meetings/new");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("title")));
 
-        driver.findElement(By.id("title")).sendKeys("Meeting 1");
-        driver.findElement(By.id("description")).sendKeys("Description");
-        setDateTimeLocal("start", "2027-06-15T09:00");
-        setDateTimeLocal("end", "2027-06-15T09:30");
-        submitProposalForm();
+        driver.findElement(By.id("title")).sendKeys("lolzinho");
+        driver.findElement(By.id("description")).sendKeys("descriçao");
 
+        // Injetar data de início via JS
+        WebElement startEl = driver.findElement(By.id("start"));
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].type = 'text'; arguments[0].value = arguments[1];", startEl, "2026-05-17T11:00");
+
+        // Injetar data de fim via JS
+        WebElement endEl = driver.findElement(By.id("end"));
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].type = 'text'; arguments[0].value = arguments[1];", endEl, "2026-05-17T11:30");
+
+        // Submeter formulário via JS
+        ((JavascriptExecutor) driver).executeScript("document.querySelector('form[action*=\"meetings\"]').submit();");
+
+        // verificar se a reuniao ficou marcada
         wait.until(ExpectedConditions.urlContains("/calendar"));
-        assertTrue(driver.getPageSource().contains("Meeting 1"));
+        assertTrue(driver.getPageSource().contains("lolzinho"));
     }
 
+    /**
+     * Testa a criação de reuniões
+     * com horas invalidas
+     */
     @Test
-    void proposeMeeting_EndBeforeStart() {
-        registerAndLogin("nuno", "nuno@gmail.pt", "password123");
+    void proposeMeetingShowsErrorWhenEndTimeIsBeforeStartTime() {
 
+        // Registar e autenticar user
+        register("Miguel", "Miguelou04@gmail.com", "Benfica123");
+        login("Miguel", "Benfica123");
+        wait.until(ExpectedConditions.urlContains("/calendar"));
+
+        // Preencher formulário com hora final invalida
         driver.get(baseUrl() + "/meetings/new");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("title")));
 
-        driver.findElement(By.id("title")).sendKeys("Meeting 2");
-        setDateTimeLocal("start", "2027-06-15T09:00");
-        setDateTimeLocal("end", "2027-06-15T08:00");
-        submitProposalForm();
+        driver.findElement(By.id("title")).sendKeys("lolzinho");
 
+        // Injetar datas invertidas via JS
+        WebElement startEl = driver.findElement(By.id("start"));
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].type = 'text'; arguments[0].value = arguments[1];", startEl, "2027-06-15T09:00");
+
+        WebElement endEl = driver.findElement(By.id("end"));
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].type = 'text'; arguments[0].value = arguments[1];", endEl, "2026-06-15T08:00");
+
+        // Submeter formulário via JS
+        ((JavascriptExecutor) driver).executeScript("document.querySelector('form[action*=\"meetings\"]').submit();");
+
+        // verificar se deu erro
         wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".error")));
         assertTrue(driver.getPageSource().contains("End time must be after start time"));
     }
 
-    @Test
-    void pendingInvite_ShouldAppearAndBeAccepted() {
-        register("organizer", "organizer@gmail.pt", "password123");
-        register("invitee", "invitee@gmail.pt", "password123");
 
-        // Organizer proposes a meeting and invites the invitee
-        login("organizer", "password123");
+    /**
+     * Testa a aceitar contives
+     * pendentes
+     */
+    @Test
+    void pendingInviteAcceptsMeetingWhenUserConfirms() {
+        // Registar users
+        register("Miguel", "Miguel@gmail.com", "lisoba");
+        register("coma", "coma@gmail.com", "lisboa");
+
+        login("Miguel", "lisoba");
         wait.until(ExpectedConditions.urlContains("/calendar"));
+
         driver.get(baseUrl() + "/meetings/new");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("title")));
-        driver.findElement(By.id("title")).sendKeys("Meeting 3");
-        setDateTimeLocal("start", "2027-06-15T09:00");
-        setDateTimeLocal("end", "2027-06-15T09:30");
-        driver.findElement(By.id("invitees")).sendKeys("invitee");
-        submitProposalForm();
+
+        driver.findElement(By.id("title")).sendKeys("fotbolada");
+
+        // Injetar datas via JS
+        WebElement startEl = driver.findElement(By.id("start"));
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].type = 'text'; arguments[0].value = arguments[1];", startEl, "2026-06-05T09:00");
+
+        WebElement endEl = driver.findElement(By.id("end"));
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].type = 'text'; arguments[0].value = arguments[1];", endEl, "2026-06-05T09:30");
+
+        driver.findElement(By.id("invitees")).sendKeys("coma");
+
+        // Submeter formulário via JS
+        ((JavascriptExecutor) driver).executeScript("document.querySelector('form[action*=\"meetings\"]').submit();");
         wait.until(ExpectedConditions.urlContains("/calendar"));
 
-        // Create a completly fresh WebDriver session
+        // nova seccao
         driver.quit();
 
-        ChromeOptions options = new ChromeOptions();
+        FirefoxOptions options = new FirefoxOptions();
         options.addArguments("--headless");
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
 
-        driver = new ChromeDriver(options);
+        driver = new FirefoxDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(5));
 
-        // Invitee logs in and sees the pending invite
-        login("invitee", "password123");
-        assertTrue(driver.getPageSource().contains("Meeting 3"));
+        // Verificar se existe o convite pendente
+        login("coma", "lisboa");
+        assertTrue(driver.getPageSource().contains("fotbolada"));
         assertTrue(driver.getPageSource().contains("pending"));
 
-        // Invitee accepts
+        // aceitar o convite
         WebElement acceptButton = driver.findElement(
                 By.xpath("//input[@value='accept']/following-sibling::button | //input[@name='action'][@value='accept']/../button"));
         acceptButton.click();
 
+        // verificar se ficou guardado
         wait.until(ExpectedConditions.urlContains("/calendar"));
-        assertTrue(driver.getPageSource().contains("Meeting 3"));
+        assertTrue(driver.getPageSource().contains("fotbolada"));
     }
 
-    @Test
-    void pendingInvite_Decline() {
-        register("organizer2", "organizer2@gmail.pt", "password123");
-        register("invitee2", "invitee2@gmail.pt", "password123");
 
-        // Organizer proposes a meeting and invites the invitee
-        login("organizer2", "password123");
+    /**
+     * Testa recusar convites pendentes
+     */
+    @Test
+    void pendingInviteRemovesMeetingWhenUserDeclines() {
+
+        register("Miguel", "Miguel@gmail.com", "lisoba");
+        register("coma", "coma@gmail.com", "lisboa");
+
+        login("Miguel", "lisoba");
+
+        // criar reuniao e convidar particiepante
         wait.until(ExpectedConditions.urlContains("/calendar"));
         driver.get(baseUrl() + "/meetings/new");
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("title")));
-        driver.findElement(By.id("title")).sendKeys("Meeting 4");
-        setDateTimeLocal("start", "2027-06-15T09:00");
-        setDateTimeLocal("end", "2027-06-15T09:30");
-        driver.findElement(By.id("invitees")).sendKeys("invitee2");
-        submitProposalForm();
+
+        driver.findElement(By.id("title")).sendKeys("Bora jola");
+
+        // Injetar datas via JS
+        WebElement startEl = driver.findElement(By.id("start"));
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].type = 'text'; arguments[0].value = arguments[1];", startEl, "2026-06-25T15:00");
+
+        WebElement endEl = driver.findElement(By.id("end"));
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].type = 'text'; arguments[0].value = arguments[1];", endEl, "2026-06-25T15:30");
+
+        driver.findElement(By.id("invitees")).sendKeys("coma");
+
+        // Submeter formulário via JS
+        ((JavascriptExecutor) driver).executeScript("document.querySelector('form[action*=\"meetings\"]').submit();");
         wait.until(ExpectedConditions.urlContains("/calendar"));
 
-        // Invitee declines
-        login("invitee2", "password123");
+        // login e recusar a reuniao
+        login("coma", "lisboa");
         wait.until(ExpectedConditions.urlContains("/calendar"));
-        assertTrue(driver.getPageSource().contains("Meeting 4"));
+        assertTrue(driver.getPageSource().contains("Bora jola"));
 
+        // recusa o convite
         WebElement declineButton = driver.findElement(
                 By.xpath("//input[@name='action'][@value='decline']/../button"));
         declineButton.click();
 
+        // Verificar que foi removida
         wait.until(ExpectedConditions.urlContains("/calendar"));
-        // After declining, the meeting should not appear in the calendar
-        assertFalse(driver.getPageSource().contains("Meeting 4"));
+        assertFalse(driver.getPageSource().contains("Bora jola"));
     }
 
-    @Test
-    void signOut_RedirectToLogin() {
-        registerAndLogin("nuno", "nuno@gmail.pt", "password123");
 
-        // 1. Garantir que a página de calendário carregou completamente
+
+
+
+    /**
+     * Testa a pesquisa de eventos atraves de um mock de enveto
+     * para o teste nao falhar no futuro
+     *
+     */
+    @Test
+    void discoverEventCopiesEventToCalendarWhenSelected() {
+        // mock do evento
+        Mockito.when(mockEventProvider.isConfigured()).thenReturn(true);
+
+        String titulo = "encontro de jogadores de pokemom";
+
+        DiscoveredEvent fakeEvent = new DiscoveredEvent(
+                "Ticketmaster",
+                "ext-854",
+                titulo,
+                "Venha demonstrar os seus pockemons",
+                Instant.parse("2026-08-20T10:00:00Z"),
+                Instant.parse("2026-08-20T15:00:00Z"),
+                "http://eventofalso.com",
+                "Praça de espanha"
+        );
+        Mockito.when(mockEventProvider.search("encontro")).thenReturn(List.of(fakeEvent));
+
+        // Registar e autenticar user
+        register("Miguel", "Miguelou04@gmail.com", "Benfica123");
+        login("Miguel", "Benfica123");
         wait.until(ExpectedConditions.urlContains("/calendar"));
 
-        // 2. Submeter o formulário de logout de forma direta com Javascript
-        // Isto procura a <form th:action="@{/logout}"> e faz submit diretamente
+        // procurar pelo evento
+        driver.get(baseUrl() + "/discover?q=encontro");
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
+        assertTrue(driver.getPageSource().contains(titulo));
+
+        // copiar evento para calendario
+        String a = "//form[.//input[@name='title' and @value='" + titulo + "']]";
+
+        WebElement form = driver.findElement(By.xpath(a));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].submit();", form);
+
+        // verificar se esta presente no calendario
+        wait.until(ExpectedConditions.urlContains("/calendar"));
+
+        String calendarPageSource = driver.getPageSource();
+        assertTrue(calendarPageSource.contains(titulo));
+    }
+    /**
+     * Testa  a  autenticação de um utilizador .
+     * * Este fluxo verifica as seguintes ações sequenciais:
+     *  Bloqueio de acesso a rotas protegidas redirecionamento para login.
+     * Registo de uma nova conta de utilizador com sucesso.
+     *  Login com as credenciais recém-criadas.
+     *  Validação da sessão ativa (presença do nome do utilizador no calendário).
+     * Término da sessão (logout) e redirecionamento correto.
+     */
+
+    @Test
+    void userAuthenticationJourney() {
+        // tentar acedar ao calendario
+        driver.get(baseUrl() + "/calendar");
+
+
+        // verificar se foi redirect para o login
+        wait.until(ExpectedConditions.urlContains("/login"));
+        // Registar utilizador
+        register("Miguel", "Miguelou04@gmail.com", "Benfica123");
+
+        // Verificar redirecionamento para login
+        wait.until(ExpectedConditions.urlContains("/login"));
+        assertTrue(driver.getPageSource().contains("Account created"));
+
+        // Registar e autenticar user
+        login("Miguel", "Benfica123");
+
+        // verifica se foi redireciado
+        wait.until(ExpectedConditions.urlContains("/calendar"));
+        assertTrue(driver.getPageSource().contains("Miguel"));
+        assertTrue(driver.getPageSource().contains("Your calendar"));
+
+        // Efetuar logout
         ((JavascriptExecutor) driver).executeScript(
                 "document.querySelector('form[action*=\"logout\"]').submit();"
         );
 
-        // 3. Confirmar que somos redirecionados
+        // vereficar se voltou para a pagina do login
         wait.until(ExpectedConditions.urlContains("/login"));
-        assertTrue(driver.getCurrentUrl().contains("/login"), "Deve ser redirecionado para o login após o logout");
-    }
-
-    @Test
-    void discoverEvent_WithMockedApi_ShouldDisplayAndCopyToCalendar() {
-        // 1. CONFIGURAR O MOCK
-        Mockito.when(mockEventProvider.isConfigured()).thenReturn(true);
-
-        String testEventTitle = "Conferencia Tech Mockada";
-
-        DiscoveredEvent fakeEvent = new DiscoveredEvent(
-                "Ticketmaster",
-                "ext-999",
-                testEventTitle,
-                "Descricao incrivel do evento falso",
-                Instant.parse("2026-11-20T10:00:00Z"),
-                Instant.parse("2026-11-20T18:00:00Z"),
-                "http://eventofalso.com",
-                "Lisboa (Virtual)"
-        );
-        Mockito.when(mockEventProvider.search("Java")).thenReturn(List.of(fakeEvent));
-
-        // 2. REGISTAR E FAZER LOGIN
-        registerAndLogin("discover_user", "discover@gmail.com", "password123");
-
-        // 3. PESQUISAR NA PÁGINA DISCOVER
-        driver.get(baseUrl() + "/discover?q=Java");
-
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
-        String discoverPageSource = driver.getPageSource();
-        assertTrue(discoverPageSource.contains(testEventTitle), "O evento fictício deve estar visível na pesquisa");
-
-        // 4. COPIAR PARA O CALENDÁRIO (Submissão exata da form correta)
-        String specificFormXPath = "//form[.//input[@name='title' and @value='" + testEventTitle + "']]";
-        WebElement form = driver.findElement(By.xpath(specificFormXPath));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].submit();", form);
-
-        // 5. VALIDAR SE ESTÁ NO CALENDÁRIO
-        wait.until(ExpectedConditions.urlContains("/calendar"));
-
-        String calendarPageSource = driver.getPageSource();
-        assertTrue(calendarPageSource.contains(testEventTitle),
-                "O evento deve aparecer no calendário após ser copiado. HTML recebido:\n" + calendarPageSource);
     }
 }
