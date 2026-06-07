@@ -17,9 +17,9 @@ class ICalServiceTest {
 
     /**
      * Testa múltiplos Branches  simultaneamente :
-     * - Cobre a linha onde o 'if' da descrição é true.
-     * - Cobre a linha onde isConfirmed() é true (STATUS:CONFIRMED).
-     * - Cobre a conversão do estado InviteStatus.ACCEPTED.
+     *  Cobre a linha onde o 'if' da descrição é true.
+     *  Cobre a linha onde isConfirmed() é true (STATUS:CONFIRMED).
+     *  Cobre a conversão do estado InviteStatus.ACCEPTED.
      */
     @Test
     void render_reuniaocroadoacomcalendario() {
@@ -40,9 +40,9 @@ class ICalServiceTest {
 
     /**
      * Testa os Branches  alternativos:
-     * - Cobre a linha onde o 'if' da descrição é false quando reunião sem descrição.
-     * - Cobre a linha onde isConfirmed() é falso quando ainda nao esta confirmacada.
-     * - Cobre a conversão do estado InviteStatus.PENDING.
+     * Cobre a linha onde o 'if' da descrição é false quando reunião sem descrição.
+     * Cobre a linha onde isConfirmed() é falso quando ainda nao esta confirmacada.
+     * Cobre a conversão do estado InviteStatus.PENDING.
      */
     @Test
     void render_ReuniaoPendenteSemDescricao_GeraTextoVCalendarTentativo() {
@@ -61,5 +61,26 @@ class ICalServiceTest {
         assertFalse(resultado.contains("DESCRIPTION:")); // Ramo false da descrição
         assertTrue(resultado.contains("STATUS:TENTATIVE")); // Ramo false do isConfirmed
         assertTrue(resultado.contains("PARTSTAT=NEEDS-ACTION")); // Ramo do switch para PENDING
+    }
+
+
+    /**
+     * Testa o Branch  de recusar .
+     * Cobre a linha do switch onde ocorre a conversão do estado InviteStatus.DECLINED.
+     */
+    @Test
+    void render_ConvidadoRecusou_GeraTextoVCalendarDeclined() {
+        // Preprar o teste
+        User user = new User("Miguel", "Miguelou04@mail.com", "Benfica");
+        Meeting reuniao = new Meeting("Reunião de Condomínio", "Pintar paredes", Instant.now(), Instant.now().plusSeconds(3600), user);
+
+        // Adiciona o participante com o convite DECLINED
+        reuniao.addParticipant(new MeetingParticipant(reuniao, user, InviteStatus.DECLINED));
+
+        // executar a pesquisa
+        String resultado = iCalService.render(user, List.of(reuniao));
+
+        // Verificar se o resultado contém o status de participação como DECLINED
+        assertTrue(resultado.contains("PARTSTAT=DECLINED"));
     }
 }

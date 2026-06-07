@@ -90,7 +90,7 @@ class TicketmasterProviderTest {
                         .withBody(jsonResponse)));
 
         // Pesquisa
-        List<DiscoveredEvent> results = ticketmasterProvider.search("taylor");
+        List<DiscoveredEvent> results = ticketmasterProvider.search("eminem");
 
         // Verificar se tem o resultado e se oes dados esta corretos
         assertEquals(1, results.size());
@@ -168,14 +168,14 @@ class TicketmasterProviderTest {
         // Simula resposta API
         stubFor(get(urlPathEqualTo("/events.json"))
                 .withQueryParam("keyword", equalTo("pcp"))
-                .withQueryParam("apikey", equalTo("fake-api-key"))   // ????
+                .withQueryParam("apikey", equalTo("fake-api-key"))   // apikey
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withStatus(200)
                         .withBody(jsonResponseWithoutDate)));
 
         // pesquisa
-        List<DiscoveredEvent> results = ticketmasterProvider.search("secreto");
+        List<DiscoveredEvent> results = ticketmasterProvider.search("pcp");
 
         //verifica que sem data time , a lista vai retornar vazia
         assertTrue(results.isEmpty());

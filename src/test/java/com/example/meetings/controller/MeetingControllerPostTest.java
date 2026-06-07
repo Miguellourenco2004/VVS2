@@ -100,9 +100,9 @@ class MeetingControllerPostTest {
                 .andExpect(status().isOk())  // 200
                 .andExpect(view().name("propose"))
                 // verifica se a mensagem de erro existe
-                .andExpect(model().attribute("error", "End time must be after start time"))
+                .andExpect(model().attribute("error", "o tempo final nao pode ser anterior "))
 
-                .andExpect(model().attribute("title",    "o tempo final nao pode ser anterior "));
+                .andExpect(model().attribute("title", "CSGO ?"));
     }
 
     /**

@@ -21,7 +21,7 @@ class MeetingRepositoryTest {
     @Autowired
     private MeetingRepository meetingRepository;
 
-    // Usamos o TestEntityManager (ferramenta nativa do Spring para testes JPA)
+    // Usamos o TestEntityManager
     // para inserir dados na base de dados antes de corrermos a nossa query.
     @Autowired
     private TestEntityManager entityManager;
@@ -89,14 +89,14 @@ class MeetingRepositoryTest {
 
         // Reunião dentro da tempo
         Meeting dentro = new Meeting("Dentro", "Desc",
-                Instant.parse("2026-01-01T15:30:00Z"),
-                Instant.parse("2026-01-01T16:30:00Z"), miguel);
+                Instant.parse("2026-02-02T15:30:00Z"),
+                Instant.parse("2026-02-02T16:30:00Z"), miguel);
         entityManager.persist(dentro);
 
         //reuniao fora do tempo
         Meeting fora = new Meeting("Fora", "Desc",
-                Instant.parse("2026-01-01T18:00:00Z"),
-                Instant.parse("2026-01-01T18:30:00Z"), miguel);
+                Instant.parse("2026-02-02T18:00:00Z"),
+                Instant.parse("2026-02-02T18:30:00Z"), miguel);
         entityManager.persist(fora);
 
         entityManager.flush();
@@ -159,20 +159,20 @@ class MeetingRepositoryTest {
 
         // Sobreposição no início da janela
         Meeting início = new Meeting("Início", "",
-                Instant.parse("2026-05-10T11:00:00Z"),
-                Instant.parse("2026-05-10T13:00:00Z"), miguel);
+                Instant.parse("2026-05-20T11:00:00Z"),
+                Instant.parse("2026-05-20T13:00:00Z"), miguel);
         entityManager.persist(início);
 
         // Sobreposição no fim da janela
         Meeting fim = new Meeting("Fim", "",
-                Instant.parse("2026-05-10T13:00:00Z"),
-                Instant.parse("2026-05-10T15:00:00Z"), miguel);
+                Instant.parse("2026-05-20T13:00:00Z"),
+                Instant.parse("2026-05-20T15:00:00Z"), miguel);
         entityManager.persist(fim);
 
         // Reunião que apenas toca no limite da janela do começo
         Meeting encostada = new Meeting("Encostada", "",
-                Instant.parse("2026-05-10T11:00:00Z"),
-                Instant.parse("2026-05-10T12:00:00Z"), miguel);
+                Instant.parse("2026-05-20T11:00:00Z"),
+                Instant.parse("2026-05-20T12:00:00Z"), miguel);
         entityManager.persist(encostada);
 
         entityManager.flush();

@@ -1,5 +1,6 @@
 package com.example.meetings.service;
 
+import com.example.meetings.discover.DiscoveredEvent;
 import com.example.meetings.model.InviteStatus;
 import com.example.meetings.model.Meeting;
 import com.example.meetings.model.MeetingParticipant;
@@ -119,4 +120,140 @@ class MeetingServiceTest {
         // Verifica se o estado do convite foi atualizado
         verify(convite).setStatus(InviteStatus.ACCEPTED);
     }
+
+    /**
+     * Testa o Branch de sucesso do copyFromDiscovered com dados completos.
+     * Cobre o caminho onde o evento tem data de fim e ativa todos os ramos 'true' no buildDescription (título, descrição, venue e url).
+     */
+    @Test
+    void copyFromDiscovered_DadosCompletos_Sucesso() {
+        // Preparar os dados
+        User user = new User("Miguel", "Miguelou04@mail.com", "Benfica");
+        DiscoveredEvent event = mock(DiscoveredEvent.class);
+        Instant inicio = Instant.now();
+        Instant fim = inicio.plusSeconds(7200); // Reunião de 2 horas
+
+        when(event.title()).thenReturn("eleicoes no real madrid");
+        when(event.start()).thenReturn(inicio);
+        when(event.end()).thenReturn(fim);
+        when(event.description()).thenReturn("Cristiano");
+        when(event.venue()).thenReturn("barnabeu porta 24 ");
+        when(event.source()).thenReturn("13 champions");
+        when(event.url()).thenReturn("https://vvs.realmadrid.es");
+
+        // Devolve a própria reunião guardada
+        when(meetingRepository.save(any(Meeting.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // copiar
+        Meeting resultado = meetingService.copyFromDiscovered(user, event);
+
+        // Verificar se o resultado não é null e se o save foi chamado 1 vez
+        assertNotNull(resultado);
+        verify(meetingRepository, times(1)).save(any(Meeting.class));
+    }
+
+    /**
+     * Testa os Branches  do copyFromDiscovered e buildDescription com dados mínimos.
+     * Cobre o ramo onde 'event.end()' é null  e contorna os blocos 'if' devido aos valores vazios ou null.
+     */
+    @Test
+    void copyFromDiscovered_DadosMinimos_GeraDataFimEPulaBranches() {
+        // Preparar os dados com campos vazios l para testar os ramos falsos dos if
+        User user = new User("Miguel", "Miguelou04@mail.com", "Benfica");
+        DiscoveredEvent event = mock(DiscoveredEvent.class);
+        Instant inicio = Instant.now();
+
+        when(event.title()).thenReturn("Reunião ");
+        when(event.start()).thenReturn(inicio);
+        when(event.end()).thenReturn(null);
+        when(event.description()).thenReturn("");
+        when(event.venue()).thenReturn(null);
+        when(event.source()).thenReturn("Manual");
+        when(event.url()).thenReturn(null);
+
+        when(meetingRepository.save(any(Meeting.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Executar a copia
+        Meeting resultado = meetingService.copyFromDiscovered(user, event);
+
+        // Verificar se a reunião foi criada e guardada com sucesso
+        assertNotNull(resultado);
+        verify(meetingRepository, times(1)).save(any(Meeting.class));
+    }
+
+    /**
+     * Testa o caso de sucess do calendarForIcalToken.
+     * Cobre a linha onde o token é válido, o utilizador é encontrado e as reuniões são listadas.
+     */
+    @Test
+    void calendarForIcalToken_TokenValido_RetornaCalendario() {
+        // Preparar o teste
+        User user = mock(User.class);
+        String tokenValido = "token_seguro_123";
+
+        when(userRepository.findByIcalToken(tokenValido)).thenReturn(Optional.of(user));
+        when(meetingRepository.findCalendarMeetings(user)).thenReturn(List.of());
+
+        // Executar a pesquisa
+        List<Meeting> resultado = meetingService.calendarForIcalToken(tokenValido);
+
+        // Verifica se o resultado não é nulo e se procurou pelo token corretamente
+        assertNotNull(resultado);
+        verify(userRepository, times(1)).findByIcalToken(tokenValido);
+    }
+
+    /**
+     * Testa o Branch de erro do calendarForIcalToken.
+     * Cobre o orElseThrow lançando IllegalArgumentException se o token não existir.
+     */
+    @Test
+    void calendarForIcalToken_TokenInvalido_LancaExcecao() {
+        // Preparar o teste
+        String tokenInvalido = "token_inexistente";
+        when(userRepository.findByIcalToken(tokenInvalido)).thenReturn(Optional.empty());
+
+        // Verificar se é lançada a exceção devido ao token inválido
+        assertThrows(IllegalArgumentException.class, () -> {
+            meetingService.calendarForIcalToken(tokenInvalido);
+        });
+    }
+
+    /**
+     * Testa o caso de sucess do método calendarFor.
+     * cobre a  consulta de reuniões associadas a um utilizador.
+     */
+    @Test
+    void calendarFor_Sucesso() {
+        // Preparar os dados
+        User user = mock(User.class);
+        when(meetingRepository.findCalendarMeetings(user)).thenReturn(List.of());
+
+        // Executar a pesquisa
+        List<Meeting> resultado = meetingService.calendarFor(user);
+
+        // Verificar se o repositório foi chamado para procurar o calendário do utilizador
+        assertNotNull(resultado);
+        verify(meetingRepository, times(1)).findCalendarMeetings(user);
+    }
+
+    /**
+     * Testa o caso de sucesso do método pendingInvitesFor.
+     * cobre a  consulta de convites pendentes de um utilizador.
+     */
+    @Test
+    void pendingInvitesFor_Sucesso() {
+        // Preparar os dados
+        User user = mock(User.class);
+        when(participantRepository.findByUserAndStatus(user, InviteStatus.PENDING)).thenReturn(List.of());
+
+        // Executar a pesquisa
+        List<MeetingParticipant> resultado = meetingService.pendingInvitesFor(user);
+
+        // Verificar se o repositório de participantes foi acionado com o filtro PENDING
+        assertNotNull(resultado);
+        verify(participantRepository, times(1)).findByUserAndStatus(user, InviteStatus.PENDING);
+    }
+
 }

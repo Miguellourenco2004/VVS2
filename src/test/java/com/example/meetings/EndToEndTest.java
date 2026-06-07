@@ -32,7 +32,7 @@ import com.example.meetings.discover.EventProvider;
 import com.example.meetings.repository.MeetingParticipantRepository;
 import com.example.meetings.repository.MeetingRepository;
 import com.example.meetings.repository.UserRepository;
-// ACABAR COM OS HELPERDS
+
 /**
  * End-to-End tests using Selenium WebDriver and a dedicated test database
  * Firefox runs in headless mode
@@ -456,4 +456,8 @@ public class EndToEndTest {
         // vereficar se voltou para a pagina do login
         wait.until(ExpectedConditions.urlContains("/login"));
     }
+
+
+
+
 }

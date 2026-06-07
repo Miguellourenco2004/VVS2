@@ -36,7 +36,7 @@ class UserRepositoryTest {
 
         //   // Verifica se o utilizador foi encontrado
         assertTrue(found.isPresent());
-        assertEquals("joao@email.com", found.get().getEmail());
+        assertEquals("miguelou04@email.com", found.get().getEmail());
     }
 
 

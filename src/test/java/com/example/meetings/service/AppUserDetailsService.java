@@ -29,7 +29,7 @@ class AppUserDetailsServiceTest {
     }
 
     /**
-     * Testa Branch de SUCESSO.
+     * Testa Branch de Sucesso.
      * Cobre as linhas de execução onde o repositório encontra o utilizador e cria o objeto UserDetails com sucesso.
      */
     @Test
