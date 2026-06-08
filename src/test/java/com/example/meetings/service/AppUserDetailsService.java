@@ -33,7 +33,7 @@ class AppUserDetailsServiceTest {
      * Cobre as linhas de execução onde o repositório encontra o utilizador e cria o objeto UserDetails com sucesso.
      */
     @Test
-    void loadUserByUsername_sucessefulrequest() {
+    void loadUserByUsernameSuccess() {
        // Preprar os dados
         User user = new User("Miguel", "Miguelou04@email.com", "benfica");
         when(userRepository.findByUsername("Miguel")).thenReturn(Optional.of(user));
@@ -41,7 +41,7 @@ class AppUserDetailsServiceTest {
         // executar a pesquisa
         UserDetails r = appUserDetailsService.loadUserByUsername("Miguel");
 
-        // vefiricar se o r obtido foi o esperado : encontrar o username
+        // vefiricar se o resultado obtido foi o esperado de encontrar o username
         assertNotNull(r);
         assertEquals("Miguel", r.getUsername());
         assertEquals("benfica", r.getPassword());
@@ -52,11 +52,11 @@ class AppUserDetailsServiceTest {
      * Cobre a linha em que é lançada a exceção UsernameNotFoundException.
      */
     @Test
-    void loadUserByUsername_invaliduser() {
+    void loadUserByUsernameNotFound() {
         // Preparação
         when(userRepository.findByUsername("naoexiste")).thenReturn(Optional.empty());
 
-        // verificar se o r obtifo foi o  esperado : lançar a exceção
+        // verificar se o resultado obtifo foi o  esperado de lançar a exceção
         assertThrows(UsernameNotFoundException.class, () -> {
             appUserDetailsService.loadUserByUsername("naoexiste");
         });

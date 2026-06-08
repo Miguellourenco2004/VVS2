@@ -91,7 +91,7 @@ public class EndToEndTest {
         }
     }
 
-    // ================= HELPERS =================
+
 
     private void register(String username, String email, String password) {
         driver.get(baseUrl() + "/register");
@@ -133,7 +133,7 @@ public class EndToEndTest {
      *
      */
     @Test
-    void registerErrorUsernameAlreadyExists() {
+    void registerDuplicateUsernameFails() {
 
         // Registar  user
         register("Miguel", "Miguelou04@gmail.com", "Benfica123");
@@ -161,7 +161,7 @@ public class EndToEndTest {
      *
      */
     @Test
-    void loginShowsErrorWhenCredentialsAreInvalid()  {
+    void loginInvalidCredentialsFails()  {
         // Registar user
         register("Miguel", "Miguelou04@gmail.com", "Benfica123");
 
@@ -190,7 +190,7 @@ public class EndToEndTest {
      * Testa a criação de reuniões
      */
     @Test
-    void proposeMeetingCreatesMeeting() {
+    void proposeMeetingSuccess() {
 
         // Registar e autenticar user
         register("Miguel", "Miguelou04@gmail.com", "Benfica123");
@@ -227,7 +227,7 @@ public class EndToEndTest {
      * com horas invalidas
      */
     @Test
-    void proposeMeetingShowsErrorWhenEndTimeIsBeforeStartTime() {
+    void proposeMeetingInvalidDatesFails() {
 
         // Registar e autenticar user
         register("Miguel", "Miguelou04@gmail.com", "Benfica123");
@@ -263,7 +263,7 @@ public class EndToEndTest {
      * pendentes
      */
     @Test
-    void pendingInviteAcceptsMeetingWhenUserConfirms() {
+    void respondMeetingAcceptedSucces() {
         // Registar users
         register("Miguel", "Miguel@gmail.com", "lisoba");
         register("coma", "coma@gmail.com", "lisboa");
@@ -320,7 +320,7 @@ public class EndToEndTest {
      * Testa recusar convites pendentes
      */
     @Test
-    void pendingInviteRemovesMeetingWhenUserDeclines() {
+    void respondMeetingDeclinedSuccess() {
 
         register("Miguel", "Miguel@gmail.com", "lisoba");
         register("coma", "coma@gmail.com", "lisboa");
@@ -374,7 +374,7 @@ public class EndToEndTest {
      *
      */
     @Test
-    void discoverEventCopiesEventToCalendarWhenSelected() {
+    void discoverEventSuccess() {
         // mock do evento
         Mockito.when(mockEventProvider.isConfigured()).thenReturn(true);
 
@@ -415,18 +415,15 @@ public class EndToEndTest {
         String calendarPageSource = driver.getPageSource();
         assertTrue(calendarPageSource.contains(titulo));
     }
-    /**
-     * Testa  a  autenticação de um utilizador .
-     * * Este fluxo verifica as seguintes ações sequenciais:
-     *  Bloqueio de acesso a rotas protegidas redirecionamento para login.
-     * Registo de uma nova conta de utilizador com sucesso.
-     *  Login com as credenciais recém-criadas.
-     *  Validação da sessão ativa (presença do nome do utilizador no calendário).
-     * Término da sessão (logout) e redirecionamento correto.
-     */
 
+
+
+    /**
+     * Testa o fluxo completo de autenticação: acesso a rotas protegidas,
+     * registo, início de sessão, validação de sessão e encerramento.
+     */
     @Test
-    void userAuthenticationJourney() {
+    void userAuthenticationJourneySuccess() {
         // tentar acedar ao calendario
         driver.get(baseUrl() + "/calendar");
 

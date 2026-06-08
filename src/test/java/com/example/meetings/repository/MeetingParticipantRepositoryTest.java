@@ -64,7 +64,7 @@ class MeetingParticipantRepositoryTest {
      * através do ID da reunião e do ID do utilizador.
      */
     @Test
-    void findByMeetingReturnsCorrectParticipant() {
+    void  findParticipantByMeetingAndUser() {
         // user
         User user = new User("Miguel", "Miguelou04@email.com", "benfica");
         entityManager.persist(user);

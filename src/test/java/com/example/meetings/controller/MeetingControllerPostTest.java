@@ -75,7 +75,7 @@ class MeetingControllerPostTest {
      */
     @Test
     @WithMockUser(username = "Miguel")
-    void proposeMeetingErrorDatesAreInvalid() throws Exception {
+    void proposeMeetingInvalidDates() throws Exception {
 
         // data inválida
         when(meetingService.propose(
@@ -110,7 +110,7 @@ class MeetingControllerPostTest {
      */
     @Test
     @WithMockUser(username = "Miguel")
-    void proposeMeetingError() throws Exception {
+    void proposeMeetingInvalidInvitee() throws Exception {
 
         // convidado desconhecido
         when(meetingService.propose(
@@ -156,7 +156,7 @@ class MeetingControllerPostTest {
      */
     @Test
     @WithMockUser(username = "Miguel")
-    void respondInviteSuccess() throws Exception {
+    void acceptInviteSuccess() throws Exception {
 
         //  user
         User mockUser = new User(

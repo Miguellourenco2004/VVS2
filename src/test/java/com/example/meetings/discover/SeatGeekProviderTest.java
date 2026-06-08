@@ -13,7 +13,12 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-
+/**
+ * Testes de integração do provider seatgeek.
+ *
+ * Utiliza WireMock para simular respostas da API externa
+ * sem necessidade de chamadas reais ao seatgeek.
+ */
 @SpringBootTest(properties = {
         "app.discover.seatgeek.client-id=fake-client-id",
         "app.discover.seatgeek.base-url=http://localhost:8089"
@@ -45,7 +50,7 @@ class SeatGeekProviderTest {
      * quando a API responde corretamente.
      */
     @Test
-    void searchReturnsDiscoveredEventsWhenApiIsSuccessful() {
+    void searchReturnsEventsSuccess() {
         // Preparar resposta JSON da API
         String jsonResponse = """
             {
@@ -66,7 +71,7 @@ class SeatGeekProviderTest {
         // GET com "q=rock", devolve o JSON
         stubFor(get(urlPathEqualTo("/events"))
                 .withQueryParam("q", equalTo("jazz"))
-                .withQueryParam("client_id", equalTo("fake-client-id"))  // OQUE È O FAKE ID
+                .withQueryParam("client_id", equalTo("fake-client-id"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withStatus(200)
@@ -91,11 +96,11 @@ class SeatGeekProviderTest {
      * não está configurado.
      */
     @Test
-    void searchReturnsEmptyListWhenProviderIsNotConfigured() {
+    void searchUnconfiguredReturnsEmpty() {
         // Preparar provider sem client id
         // Assim testamos a proteção inicial do método search().
         SeatGeekProvider unconfiguredProvider = new SeatGeekProvider(
-                "", // Client ID vazio!
+                "", // Client ID vazio
                 "http://localhost:8089"
         );
 
@@ -112,7 +117,7 @@ class SeatGeekProviderTest {
      * não que nao possui data de início.
      */
     @Test
-    void searchIgnoresEventsWithoutStartDate() {
+    void searchIgnoresEventsWithoutDate() {
         // Preparar  JSON sem datetime
         String jsonResponseWithoutDate = """
             {
@@ -147,7 +152,7 @@ class SeatGeekProviderTest {
      * Testa  API devolve erro.
      */
     @Test
-    void searchReturnsEmptyListWhenApiFails() {
+    void searchIgnoresApiError() {
         // Simula erro 500 da API
         stubFor(get(urlPathMatching("/events.*"))
                 .willReturn(aResponse().withStatus(500)));

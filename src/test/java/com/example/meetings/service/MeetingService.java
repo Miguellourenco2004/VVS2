@@ -34,17 +34,17 @@ class MeetingServiceTest {
     void setUp() { MockitoAnnotations.openMocks(this); }
 
     /**
-     * Testa Branch de error na validação de datas do  propose.
+     * Testa Branch error na validação de datas do  propose.
      * Cobre a linha 'if (!end.isAfter(start))'  exceção se a  data fim < data inicio
      */
     @Test
-    void propose_DataFimInvalida_LancaExcecao() {
+    void proposeMeetingInvalidDatesFails() {
         // Preprar o teste
         User user = new User("Miguel", "Miguelou04@mail.com", "benfica");
         Instant inicio = Instant.now();
         Instant fim = inicio.minusSeconds(3600); // o fim esta no passado
 
-        // Verificar se o resultaco contem : a execao por o fim < inicio
+        // Verificar se o resultaco contem  a execao por o fim < inicio
         assertThrows(IllegalArgumentException.class, () -> {
             meetingService.propose(user, "Titulo", "Desc", inicio, fim, List.of());
         });
@@ -59,7 +59,7 @@ class MeetingServiceTest {
      * e garante a Line Coverage da persistência na base de dados.
      */
     @Test
-    void propose_DadosValidos_GuardaReuniaoComConvidados() {
+    void proposeMeetingSuccess() {
         // Preprar o teste
         User user = new User("Miguel", "Miguelou04@mail.com", "Benfica");
         User convite = new User("pedro", "pedro@mail.com", "Pedro");
@@ -85,7 +85,7 @@ class MeetingServiceTest {
      * Cobre as linhas de decisão onde um estado  pending  não pode ser enviado na resposta.
      */
     @Test
-    void respond_StatusInvalidoo() {
+    void respondMeetingInvalidStatusFails() {
         // Preprar o teste
         User user = new User("Miguel", "Miguelou04@mail.com", "Benfica");
 
@@ -101,7 +101,7 @@ class MeetingServiceTest {
      * Cobre as linhas onde o convite é encontrado e o Status é atualizado.
      */
     @Test
-    void respond_StatusAceite_AtualizaConvite() {
+    void respondMeetingAcceptedSuccess() {
 
         // Preparar o utilizador user
         User user = mock(User.class);
@@ -126,7 +126,7 @@ class MeetingServiceTest {
      * Cobre o caminho onde o evento tem data de fim e ativa todos os ramos 'true' no buildDescription (título, descrição, venue e url).
      */
     @Test
-    void copyFromDiscovered_DadosCompletos_Sucesso() {
+    void copyFromDiscoveredSuccess() {
         // Preparar os dados
         User user = new User("Miguel", "Miguelou04@mail.com", "Benfica");
         DiscoveredEvent event = mock(DiscoveredEvent.class);
@@ -158,7 +158,7 @@ class MeetingServiceTest {
      * Cobre o ramo onde 'event.end()' é null  e contorna os blocos 'if' devido aos valores vazios ou null.
      */
     @Test
-    void copyFromDiscovered_DadosMinimos_GeraDataFimEPulaBranches() {
+    void copyFromDiscoveredMinimalDataSuccess() {
         // Preparar os dados com campos vazios l para testar os ramos falsos dos if
         User user = new User("Miguel", "Miguelou04@mail.com", "Benfica");
         DiscoveredEvent event = mock(DiscoveredEvent.class);
@@ -188,7 +188,7 @@ class MeetingServiceTest {
      * Cobre a linha onde o token é válido, o utilizador é encontrado e as reuniões são listadas.
      */
     @Test
-    void calendarForIcalToken_TokenValido_RetornaCalendario() {
+    void calendarForIcalTokenSuccess() {
         // Preparar o teste
         User user = mock(User.class);
         String tokenValido = "token_seguro_123";
@@ -209,7 +209,7 @@ class MeetingServiceTest {
      * Cobre o orElseThrow lançando IllegalArgumentException se o token não existir.
      */
     @Test
-    void calendarForIcalToken_TokenInvalido_LancaExcecao() {
+    void calendarForIcalTokenInvalidFails() {
         // Preparar o teste
         String tokenInvalido = "token_inexistente";
         when(userRepository.findByIcalToken(tokenInvalido)).thenReturn(Optional.empty());
@@ -225,7 +225,7 @@ class MeetingServiceTest {
      * cobre a  consulta de reuniões associadas a um utilizador.
      */
     @Test
-    void calendarFor_Sucesso() {
+    void calendarForSuccess() {
         // Preparar os dados
         User user = mock(User.class);
         when(meetingRepository.findCalendarMeetings(user)).thenReturn(List.of());
@@ -243,7 +243,7 @@ class MeetingServiceTest {
      * cobre a  consulta de convites pendentes de um utilizador.
      */
     @Test
-    void pendingInvitesFor_Sucesso() {
+    void pendingInvitesForSuccess() {
         // Preparar os dados
         User user = mock(User.class);
         when(participantRepository.findByUserAndStatus(user, InviteStatus.PENDING)).thenReturn(List.of());

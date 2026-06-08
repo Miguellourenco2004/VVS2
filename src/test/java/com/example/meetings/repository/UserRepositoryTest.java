@@ -45,7 +45,7 @@ class UserRepositoryTest {
      * já existentes ou nao  na base de dados.
      */
     @Test
-    void existsByUsernameReturnsTrueWhenUsernameIsTaken() {
+    void existsByUsername() {
         // preparar user
         entityManager.persistAndFlush(new User("miguel", "miguelou04@email.com", "benfica"));
 
@@ -60,7 +60,7 @@ class UserRepositoryTest {
      * através do token iCal.
      */
     @Test
-    void findByIcalTokenReturnsUserCorrectly() {
+    void findByIcalTokenSuccess() {
         // preparar user
         User user = new User("Miguel", "miguelou04@email.com", "benfica");
         entityManager.persistAndFlush(user);
@@ -81,14 +81,14 @@ class UserRepositoryTest {
      * username
      */
     @Test
-    void UserWithDuplicateUsername() {
+    void saveDuplicateUsernameFails() {
         //  preprarr user 1
         entityManager.persistAndFlush(new User("miguel", "um@email.com", "benfica"));
 
         // preprar user 2
         User user2 = new User("miguel", "dois@email.com", "benfica");
 
-        //   // Verifica se a base de dados rejeita o duplicado unique=true
+        //  Verifica se a base de dados rejeita o duplicado unique=true
         assertThrows(DataIntegrityViolationException.class, () -> {
             userRepository.saveAndFlush(user2);
         });

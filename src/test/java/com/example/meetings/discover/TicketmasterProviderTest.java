@@ -51,7 +51,7 @@ class TicketmasterProviderTest {
      * quando a API responde corretamente.
      */
     @Test
-    void searchReturnsEventssSuccessful() {
+    void searchReturnsEventsSuccess() {
         // Preparar JSON  da API Ticketmaster
         String jsonResponse = """
             {
@@ -107,8 +107,8 @@ class TicketmasterProviderTest {
      * Testa quando a API devolve erro.
      */
     @Test
-    void searchReturnsEmptyListApiFails() {
-        // Simula um erro 500 do
+    void searchEmptyOnApiError() {
+        // Simula um erro 500
         stubFor(get(urlPathMatching("/events.json.*"))
                 .willReturn(aResponse().withStatus(500)));
 
@@ -125,7 +125,7 @@ class TicketmasterProviderTest {
      * não está configurado.
      */
     @Test
-    void searchReturnsroviderNotConfigured() {
+    void searchEmptyIfUnconfigured() {
         // Preparar provider sem API Key
         // Assim testamos a proteção do método isConfigured()
         // Como o Spring injeta as propriedades no arranque, a melhor forma de testar
@@ -139,7 +139,7 @@ class TicketmasterProviderTest {
       // pesquisa
         List<DiscoveredEvent> results = unconfiguredProvider.search("taylor");
 
-        // Verifica se devolve lista vaziam étodo isConfigured() funcionou
+        // Verifica se devolve lista vazia étodo isConfigured() funcionou
         assertTrue(results.isEmpty());
     }
 
@@ -149,7 +149,7 @@ class TicketmasterProviderTest {
      * que não possui data de início.
      */
     @Test
-    void searchIgnoresEventsWithoutStartDate() {
+    void searchExcludesEventsNoDate() {
         // Preparar JSON sem campo dateTime
         String jsonResponseWithoutDate = """
             {

@@ -35,7 +35,7 @@ class MeetingRepositoryTest {
      * PENDING ou ACCEPTED.
      */
     @Test
-    void findCalendarMeetingsReturnsMeetingsWhereUserIsOrganizerOrAcceptedPendingParticipant() {
+    void findCalendarMeetingsSuccess() {
 
         // Preparar users
         User Miguel = new User("Miguel", "Miguel@email.com", "senha");
@@ -65,11 +65,11 @@ class MeetingRepositoryTest {
         List<Meeting> calendarioDoBob = meetingRepository.findCalendarMeetings(pilo);
 
         // verificar se aparecem aoenas duas reunioes
-        assertEquals(2, calendarioDoBob.size()); // Apenas a "Reunião do Bob" e a "Convite Pendente"
+        assertEquals(2, calendarioDoBob.size()); // Apenas 2
 
         boolean temRecusada = calendarioDoBob.stream()
                 .anyMatch(m -> m.getTitle().equals("Convite Recusado"));
-        assertFalse(temRecusada, "A query não deve devolver reuniões que o utilizador recusou!");
+        assertFalse(temRecusada);
     }
 
 
@@ -115,7 +115,7 @@ class MeetingRepositoryTest {
      * são distintas e ordenadas por data.
      */
     @Test
-    void findCalendarMeetingsReturnsDistinctAndOrderedMeetings() {
+    void findCalendarMeetingsOrdered() {
         // Preparar user
         User Miguel = new User("Miguel", "Miguel@email.com", "benfica");
         entityManager.persist(Miguel);
@@ -148,7 +148,7 @@ class MeetingRepositoryTest {
      * entre reuniões e uma janela temporal.
      */
     @Test
-    void returnsPartialOverlaps() {
+    void  findOverlappingReturnsPartial() {
         // Preparar user
         User miguel = new User("miguel", "miguel@email.com", "benfica");
         entityManager.persist(miguel);

@@ -71,7 +71,7 @@ class AuthControllerPostTest {
      * Testa o registo de um utilizador com dados válidos.
      */
     @Test
-    void registerUserSuccessRedirecLogin() throws Exception {
+    void registerUserSuccess() throws Exception {
 
         //  POST de registo com os parametros validos
         mockMvc.perform(post("/register")
@@ -89,7 +89,7 @@ class AuthControllerPostTest {
      * Testa o username já existe.
      */
     @Test
-    void registerUserReturnsError() throws Exception {
+    void registerUserError() throws Exception {
 
         // Simula erro ao tentar registar um username já existente
         when(userService.register(anyString(), anyString(), anyString()))

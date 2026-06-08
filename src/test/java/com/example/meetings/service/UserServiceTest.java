@@ -36,7 +36,7 @@ class UserServiceTest {
      * Cobre o 'if (userRepository.existsByUsername(username))' como true .
      */
     @Test
-    void register_UtilizadorJaExiste_LancaExcecao() {
+    void registerDuplicateUsernameFails() {
 
         when(userRepository.existsByUsername("miguel")).thenReturn(true);
 
@@ -52,7 +52,7 @@ class UserServiceTest {
      * Cobre a criação, codificação e persistência do utilizador  .
      */
     @Test
-    void register_user_and_save() {
+    void registerSuccess() {
 
         //usern  ainda não existe
         when(userRepository.existsByUsername("maria")).thenReturn(false);
@@ -95,7 +95,7 @@ class UserServiceTest {
      * Cobre o orElseThrow
      */
     @Test
-    void requireByUsername_NotFound() {
+    void requireByUsernameNotFound() {
         // Simula que o utilizador não existe
         when(userRepository.findByUsername("mIGUEL")).thenReturn(Optional.empty());
 

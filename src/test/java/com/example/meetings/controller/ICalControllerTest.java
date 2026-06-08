@@ -44,7 +44,7 @@ class ICalControllerTest {
      * para um token válido.
      */
     @Test
-    void ReturnsCalendarForValidToken() throws Exception {
+    void icalCalendarSuccess() throws Exception {
 
         // user
         User mockUser = new User(
@@ -86,7 +86,7 @@ class ICalControllerTest {
      * Testa  o token iCal invalido.
      */
     @Test
-    void ReturnsNotFoundForInvalidToken() throws Exception {
+    void invalidIcalTokenNotFound() throws Exception {
 
         // tockeen invalido
         when(userRepository.findByIcalToken("token-inventado"))

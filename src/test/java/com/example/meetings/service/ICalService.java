@@ -16,13 +16,13 @@ class ICalServiceTest {
     private final ICalService iCalService = new ICalService();
 
     /**
-     * Testa múltiplos Branches  simultaneamente :
+     * Testa múltiplos Branches  simultaneamente
      *  Cobre a linha onde o 'if' da descrição é true.
      *  Cobre a linha onde isConfirmed() é true (STATUS:CONFIRMED).
      *  Cobre a conversão do estado InviteStatus.ACCEPTED.
      */
     @Test
-    void render_reuniaocroadoacomcalendario() {
+    void renderCalendarWithMeetingSuccess() {
         // Preprar os dados
         User user = new User("Miguel", "Miguelou04@mail.com", "benfica");
         Meeting reuniao = new Meeting("Projeto VVS", "Reuniao proff", Instant.now(), Instant.now().plusSeconds(3600), user);
@@ -39,13 +39,13 @@ class ICalServiceTest {
     }
 
     /**
-     * Testa os Branches  alternativos:
+     * Testa os Branches  alternativos
      * Cobre a linha onde o 'if' da descrição é false quando reunião sem descrição.
      * Cobre a linha onde isConfirmed() é falso quando ainda nao esta confirmacada.
      * Cobre a conversão do estado InviteStatus.PENDING.
      */
     @Test
-    void render_ReuniaoPendenteSemDescricao_GeraTextoVCalendarTentativo() {
+    void renderCalendarPendingNoDescription() {
         // Preprar o teste
         User user = new User("Miguel", "Miguelou04@mail.com", "Benfica");
         User convidado = new User("Pedro", "Pedro@mail.com", "Pedro");
@@ -69,7 +69,7 @@ class ICalServiceTest {
      * Cobre a linha do switch onde ocorre a conversão do estado InviteStatus.DECLINED.
      */
     @Test
-    void render_ConvidadoRecusou_GeraTextoVCalendarDeclined() {
+    void renderCalendarDeclinedStatus() {
         // Preprar o teste
         User user = new User("Miguel", "Miguelou04@mail.com", "Benfica");
         Meeting reuniao = new Meeting("Reunião de Condomínio", "Pintar paredes", Instant.now(), Instant.now().plusSeconds(3600), user);

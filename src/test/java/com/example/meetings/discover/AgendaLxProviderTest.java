@@ -12,7 +12,12 @@ import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
-
+/**
+ * Testes de integração do provider agendalx.
+ *
+ * Utiliza WireMock para simular respostas da API externa
+ * sem necessidade de chamadas reais ao agendalx.
+ */
 @SpringBootTest(properties = {
         "app.discover.agendalx.base-url=http://localhost:8089"
 })
@@ -42,7 +47,7 @@ class AgendaLxProviderTest {
      * quando a API responde corretamente.
      */
     @Test
-    void searcEventsWhenApiIsSuccessful() {
+    void searchEventsSuccess() {
         // Preparar resposta JSON da API
         String jsonResponse = """
             [
@@ -86,7 +91,7 @@ class AgendaLxProviderTest {
      * Testa  adicionar pesquicasa por um evento que ja acabou
      */
     @Test
-    void searchIgnoresEventsWhoseOccurrencesAreAllInThePast() {
+    void searchIgnoresPastEvents() {
         // Preparar resposta JSON com evento antigo 2016
         String jsonResponsePastEvent = """
             [
