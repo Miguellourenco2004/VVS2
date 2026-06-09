@@ -8,7 +8,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  # --- JOB 1: Testes Unitários e de Integração ---
+  # JOB 1: Testes Unitários e de Integração
   build-and-test:
     runs-on: ubuntu-latest
     steps:
@@ -21,14 +21,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run Unit Tests
-        run: mvn test -Punit-tests
+      - name: Run Unit Tests (Service & Discover)
+        # Corre apenas os testes dentro das pastas service e discover
+        run: mvn test -Dtest="com.example.meetings.service.**,com.example.meetings.discover.**"
 
-      - name: Run Integration Tests
+      - name: Run Integration Tests (Controller & Repository)
+        # Corre apenas os testes dentro das pastas controller e repository
+        run: mvn test -Dtest="com.example.meetings.controller.**,com.example.meetings.repository.**"
 
-        run: mvn verify -Pintegration-tests -Dsurefire.skip=true
-
-  # --- JOB 2: Testes E2E ---
+  # JOB 2: Testes E2E
   e2e-tests:
     needs: build-and-test
     runs-on: ubuntu-latest
@@ -42,6 +43,6 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run e2e Tests
-        # Ignora os unitários também aqui!
-        run: mvn verify -Pe2e-tests -Dsurefire.skip=true
+      - name: Run End-to-End Tests
+        # Corre EXCLUSIVAMENTE o ficheiro EndToEndTest
+        run: mvn test -Dtest="com.example.meetings.EndToEndTest"
