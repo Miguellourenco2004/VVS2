@@ -44,5 +44,5 @@ jobs:
           cache: maven
 
       - name: Run End-to-End Tests
-        # Corre EXCLUSIVAMENTE o ficheiro EndToEndTest
+        # Corre  o ficheiro EndToEndTest
         run: mvn test -Dtest="com.example.meetings.EndToEndTest"
