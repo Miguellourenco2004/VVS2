@@ -24,7 +24,12 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
+/**
+ * Testes da camada web para o DiscoveryController.
+ *
+ * Utiliza @WebMvcTest para simular a pesquisa de eventos externos através de providers,
+ * validando o mapeamento de resultados, tratamento de queries vazias e a cópia de eventos para o calendário do utilizador.
+ */
 
 @WebMvcTest(controllers = DiscoveryController.class)
 @Import(SecurityConfig.class)

@@ -12,6 +12,13 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Testes de integração da camada de persistência para o UserRepository.
+ *
+ * Utiliza @DataJpaTest e TestEntityManager para simular o comportamento da base de dados em memória,
+ * verificando a pesquisa por tokens iCal e usernames, bem como a correta aplicação de restrições
+ * de integridade de dados.
+ */
 @DataJpaTest
 class UserRepositoryTest {
 
@@ -64,7 +71,7 @@ class UserRepositoryTest {
         // preparar user
         User user = new User("Miguel", "miguelou04@email.com", "benfica");
         entityManager.persistAndFlush(user);
-        String generatedToken = user.getIcalToken(); // O token é gerado no construtor
+        String generatedToken = user.getIcalToken();
 
         // pesquisa pelo token
         Optional<User> found = userRepository.findByIcalToken(generatedToken);
@@ -76,8 +83,7 @@ class UserRepositoryTest {
 
 
     /**
-     * Testa a inserção de
-     * doius users com o mesmo
+     * Testa a inserção de doius users com o mesmo
      * username
      */
     @Test

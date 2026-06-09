@@ -21,6 +21,13 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+/**
+ * Testes da camada web para o MeetingController.
+ *
+ * Utiliza @WebMvcTest para simular os fluxos de criação de reuniões e resposta a convites,
+ * validando o tratamento de erros como datas cronologicamente incorretas ou convidados inexistentes.
+ */
 @WebMvcTest(controllers = MeetingController.class)
 @Import(SecurityConfig.class)
 class MeetingControllerPostTest {
@@ -40,11 +47,7 @@ class MeetingControllerPostTest {
     void setUp() {
 
         // user
-        mockOrganizer = new User(
-                "Miguel",
-                "miguelou04@email.com",
-                "benfica"
-        );
+        mockOrganizer = new User("Miguel", "miguelou04@email.com", "benfica");
 
 
         when(userService.requireByUsername("Niguel"))

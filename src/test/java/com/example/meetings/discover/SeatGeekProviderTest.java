@@ -98,7 +98,7 @@ class SeatGeekProviderTest {
     @Test
     void searchUnconfiguredReturnsEmpty() {
         // Preparar provider sem client id
-        // Assim testamos a proteção inicial do método search().
+        // Assim testamos a proteção inicial do metodo search().
         SeatGeekProvider unconfiguredProvider = new SeatGeekProvider(
                 "", // Client ID vazio
                 "http://localhost:8089"

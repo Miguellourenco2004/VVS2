@@ -15,6 +15,14 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Testes de integração da camada de persistência para MeetingParticipantRepository.
+ *
+ * Utiliza @DataJpaTest e TestEntityManager para configurar uma base de dados em memória,
+ * permitindo validar as queries personalizadas de pesquisa de participantes e estados de convites
+ * sem necessidade de acesso a uma base de dados de produção.
+ */
+
 @DataJpaTest
 class MeetingParticipantRepositoryTest {
 

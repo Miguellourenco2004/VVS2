@@ -21,7 +21,13 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-
+/**
+ * Testes unitários para a MeetingService.
+ *
+ * Utiliza Mockito para isolar a lógica de negócio das dependências da base de dados,
+ * validando o cumprimento de regras essenciais como a coerência cronológica ,
+ * a importação de eventos descobertos e a atualização de estados dos participantes.
+ */
 class MeetingServiceTest {
 
     @Mock private MeetingRepository meetingRepository;

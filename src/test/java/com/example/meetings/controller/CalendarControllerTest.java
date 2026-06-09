@@ -18,8 +18,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+/**
+ * Testes da camada web para o CalendarController.
+ *
+ * Utiliza @WebMvcTest para verificar a correta injeção de atributos no modelo para utilizadores autenticados,
+ * e garantir que utilizadores sem sessão iniciada são redirecionados para a página de login.
+ */
 
-// Dizemos ao Spring para testar apenas o CalendarController e injetamos uma propriedade necessária
 @WebMvcTest(controllers = CalendarController.class, properties = "app.base-url=http://localhost:8080")
 @Import(SecurityConfig.class)
 class CalendarControllerTest {

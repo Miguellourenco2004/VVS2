@@ -18,9 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Utiliza WireMock para simular respostas da API externa
  * sem necessidade de chamadas reais ao agendalx.
  */
-@SpringBootTest(properties = {
-        "app.discover.agendalx.base-url=http://localhost:8089"
-})
+@SpringBootTest(properties = {"app.discover.agendalx.base-url=http://localhost:8089"})
 class AgendaLxProviderTest {
 
     @Autowired
@@ -79,7 +77,7 @@ class AgendaLxProviderTest {
         assertEquals(1, results.size());
         DiscoveredEvent event = results.get(0);
 
-        // vereficar se é o json
+        // verificar se é o json
         assertEquals("Agenda Cultural de Lisboa", event.source());
         assertEquals("1", event.externalId());
         assertEquals("FESTA da moita", event.title());
@@ -88,7 +86,7 @@ class AgendaLxProviderTest {
     }
 
     /**
-     * Testa  adicionar pesquicasa por um evento que ja acabou
+     * Testa adicionar pesquicasa por um evento que já acabou
      */
     @Test
     void searchIgnoresPastEvents() {
@@ -105,7 +103,7 @@ class AgendaLxProviderTest {
               }
             ]
             """;
-        // Resposta  API para pesquisa
+        // Resposta API para pesquisa
         stubFor(get(urlPathEqualTo("/events"))
                 .withQueryParam("search", equalTo("euro"))
                 .willReturn(aResponse()
@@ -116,8 +114,8 @@ class AgendaLxProviderTest {
         // pesquisa
         List<DiscoveredEvent> results = agendaLxProvider.search("antigo");
 
-        //  O método nextOccurrence() não encontra datas no futuro,
-        // devolve null, e os resultados estao vazios.
+        //  O metodo nextOccurrence() não encontra datas no futuro
+        // devolve null, e os resultados estão vazios.
         assertTrue(results.isEmpty());
     }
 }

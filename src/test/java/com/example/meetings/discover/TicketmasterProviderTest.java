@@ -127,9 +127,8 @@ class TicketmasterProviderTest {
     @Test
     void searchEmptyIfUnconfigured() {
         // Preparar provider sem API Key
-        // Assim testamos a proteção do método isConfigured()
-        // Como o Spring injeta as propriedades no arranque, a melhor forma de testar
-        // a ausência da chave num teste específico é instanciar a classe diretamente.
+
+
         TicketmasterProvider unconfiguredProvider = new TicketmasterProvider(
                 "", // API Key vazia!
                 "PT",
@@ -139,7 +138,7 @@ class TicketmasterProviderTest {
       // pesquisa
         List<DiscoveredEvent> results = unconfiguredProvider.search("taylor");
 
-        // Verifica se devolve lista vazia étodo isConfigured() funcionou
+        // Verifica se devolve lista vazia e o isConfigured() funcionou
         assertTrue(results.isEmpty());
     }
 

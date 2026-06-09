@@ -14,7 +14,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-
+/**
+ * Testes de integração da camada de persistência para o MeetingRepository.
+ *
+ * Utiliza @DataJpaTest e TestEntityManager para instanciar uma base de dados em memória,
+ * validando a lógica complexa de queries  de forma rápida e isolada.
+ */
 @DataJpaTest
 class MeetingRepositoryTest {
 
@@ -30,9 +35,6 @@ class MeetingRepositoryTest {
     /**
      * Testa a pesquisa de reuniões do calendário.
      *
-     * Deve devolver reuniões onde o utilizador
-     * é organizador ou participante com estado
-     * PENDING ou ACCEPTED.
      */
     @Test
     void findCalendarMeetingsSuccess() {
@@ -157,19 +159,19 @@ class MeetingRepositoryTest {
         Instant inicioPesquisa = Instant.parse("2026-05-20T12:00:00Z");
         Instant fimPesquisa = Instant.parse("2026-05-20T14:00:00Z");
 
-        // Sobreposição no início da janela
+        // Reuniao que começa antes do tempo mas acabda durante o mesmo
         Meeting início = new Meeting("Início", "",
                 Instant.parse("2026-05-20T11:00:00Z"),
                 Instant.parse("2026-05-20T13:00:00Z"), miguel);
         entityManager.persist(início);
 
-        // Sobreposição no fim da janela
+        // Reuniao que começa dentro do tempo e acaba depois do mesmo
         Meeting fim = new Meeting("Fim", "",
                 Instant.parse("2026-05-20T13:00:00Z"),
                 Instant.parse("2026-05-20T15:00:00Z"), miguel);
         entityManager.persist(fim);
 
-        // Reunião que apenas toca no limite da janela do começo
+        // Reunião que  começa e acabda  no limite da janela do começo
         Meeting encostada = new Meeting("Encostada", "",
                 Instant.parse("2026-05-20T11:00:00Z"),
                 Instant.parse("2026-05-20T12:00:00Z"), miguel);

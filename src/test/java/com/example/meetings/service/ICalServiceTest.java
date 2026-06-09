@@ -10,7 +10,13 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-
+/**
+ * Testes unitários para o ICalService.
+ *
+ * Sendo uma classe de utilidade sem dependências externas, o serviço é instanciado diretamente
+ * para testar a lógica de formatação de ficheiros iCal (.ics), validando a correta tradução
+ * das descrições das reuniões e dos estados dos convites Aceite, Pendente e  Recusado.
+ */
 class ICalServiceTest {
 
     private final ICalService iCalService = new ICalService();

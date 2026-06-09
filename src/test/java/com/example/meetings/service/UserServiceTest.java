@@ -14,7 +14,13 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-
+/**
+ * Testes unitários para a UserService.
+ *
+ * Utiliza Mockito para simular as respostas da base de dados e a injeção do codificador de passwords,
+ * garantindo o funcionamento correto do registo de contas ,
+ * a encriptação de credenciais e a validação de utilizadores existentes.
+ */
 class UserServiceTest {
 
     @Mock

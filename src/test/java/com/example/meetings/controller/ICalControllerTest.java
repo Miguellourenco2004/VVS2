@@ -20,10 +20,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-@WebMvcTest(
-        controllers = ICalController.class,
-        properties = "app.base-url=http://localhost:8080"
-)
+
+
+/**
+ * Testes da camada web para o ICalController.
+ *
+ * Utiliza @WebMvcTest para validar a geração de ficheiros .ics,
+ * testando a conversão do calendário do utilizador num formato descarregável através de um token de acesso válido ou inválido.
+ */
+@WebMvcTest(controllers = ICalController.class, properties = "app.base-url=http://localhost:8080")
 @Import(SecurityConfig.class)
 class ICalControllerTest {
 

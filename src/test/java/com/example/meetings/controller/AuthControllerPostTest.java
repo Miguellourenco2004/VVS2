@@ -16,7 +16,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
+/**
+ * Testes da camada web para o controlador de autenticação (AuthController).
+ *
+ * Utiliza @WebMvcTest e Mockito para validar o carregamento das páginas de login e registo,
+ * bem como simular o fluxo de submissão de dados e redirecionamentos, sem carregar o contexto completo da aplicação.
+ */
 @WebMvcTest(controllers = AuthController.class)
 @Import(SecurityConfig.class)
 class AuthControllerPostTest {

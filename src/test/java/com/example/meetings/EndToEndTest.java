@@ -34,8 +34,8 @@ import com.example.meetings.repository.MeetingRepository;
 import com.example.meetings.repository.UserRepository;
 
 /**
- * End-to-End tests using Selenium WebDriver and a dedicated test database
- * Firefox runs in headless mode
+ * Testes End-to-End utilizando o Selenium WebDriver e uma base de dados dedicada para testes.
+ * O Firefox é executado em modo headless.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
@@ -64,7 +64,7 @@ public class EndToEndTest {
     }
 
     /**
-     * Setup ao firex fox para exevutar os testes
+     * Setup ao firexfox para exevutar os testes
      *
      */
     @BeforeEach
@@ -91,7 +91,7 @@ public class EndToEndTest {
         }
     }
 
-
+ // Helpers para funcoes repetitivas
 
     private void register(String username, String email, String password) {
         driver.get(baseUrl() + "/register");
@@ -186,9 +186,7 @@ public class EndToEndTest {
     /**
      * Testa a criação de reuniões
      */
-    /**
-     * Testa a criação de reuniões
-     */
+
     @Test
     void proposeMeetingSuccess() {
 
@@ -419,8 +417,8 @@ public class EndToEndTest {
 
 
     /**
-     * Testa o fluxo completo de autenticação: acesso a rotas protegidas,
-     * registo, início de sessão, validação de sessão e encerramento.
+     * Testa o fluxo  de autenticação, acesso a rotas protegidas,
+     * registo, login , validação e logout
      */
     @Test
     void userAuthenticationJourneySuccess() {

@@ -14,7 +14,13 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
-
+/**
+ * Testes unitários para AppUserDetailsService.
+ *
+ * Utiliza Mockito para simular o comportamento do UserRepository,
+ * validando o carregamento bem-sucedido dos dados do utilizador para a sessão
+ * e o lançamento adequado de exceções quando o utilizador não é encontrado.
+ */
 class AppUserDetailsServiceTest {
 
     @Mock
