@@ -22,10 +22,10 @@ class ICalServiceTest {
     private final ICalService iCalService = new ICalService();
 
     /**
-     * Testa múltiplos Branches  simultaneamente
-     *  Cobre a linha onde o 'if' da descrição é true.
-     *  Cobre a linha onde isConfirmed() é true (STATUS:CONFIRMED).
-     *  Cobre a conversão do estado InviteStatus.ACCEPTED.
+     * Testa múltiplos cenários simultaneamente
+     * Cobre o cenário em que a reunião tem descrição.
+     * Cobre o cenário onde a reunião está confirmada (STATUS:CONFIRMED).
+     * Cobre a troca do estado InviteStatus.ACCEPTED.
      */
     @Test
     void renderCalendarWithMeetingSuccess() {
@@ -38,17 +38,18 @@ class ICalServiceTest {
         String resultado = iCalService.render(user, List.of(reuniao));
 
 
-        // Verificar se o resultaco contem : os a descricao e a confimacao de sucesso
+        // Verificar se o resultaco contem  os a descricao e a confimacao de sucesso
         assertTrue(resultado.contains("DESCRIPTION:Reuniao proff"));
         assertTrue(resultado.contains("STATUS:CONFIRMED"));
         assertTrue(resultado.contains("PARTSTAT=ACCEPTED"));
     }
 
+
     /**
-     * Testa os Branches  alternativos
-     * Cobre a linha onde o 'if' da descrição é false quando reunião sem descrição.
-     * Cobre a linha onde isConfirmed() é falso quando ainda nao esta confirmacada.
-     * Cobre a conversão do estado InviteStatus.PENDING.
+     * Testa os cenários alternativos.
+     * Cobre o cenário em que a reunião não tem descrição,'if' da descrição é false
+     * Cobre o cenário onde a reunião ainda não está confirmada, isConfirmed() é falso.
+     * Cobre a troca do estado InviteStatus.PENDING.
      */
     @Test
     void renderCalendarPendingNoDescription() {
@@ -63,16 +64,16 @@ class ICalServiceTest {
         // executar a pesquisa
         String resultado = iCalService.render(user, List.of(reuniao));
 
-        // Verificar se o resultaco contem : descricao vazia , e p statos de ainda nao confirmado
-        assertFalse(resultado.contains("DESCRIPTION:")); // Ramo false da descrição
-        assertTrue(resultado.contains("STATUS:TENTATIVE")); // Ramo false do isConfirmed
-        assertTrue(resultado.contains("PARTSTAT=NEEDS-ACTION")); // Ramo do switch para PENDING
+        // Verificar se o resultaco contem descricao vazia , e os statos de ainda nao confirmado
+        assertFalse(resultado.contains("DESCRIPTION:")); // false da descrição
+        assertTrue(resultado.contains("STATUS:TENTATIVE")); //  false do isConfirmed
+        assertTrue(resultado.contains("PARTSTAT=NEEDS-ACTION")); //  switch para PENDING
     }
 
 
     /**
-     * Testa o Branch  de recusar .
-     * Cobre a linha do switch onde ocorre a conversão do estado InviteStatus.DECLINED.
+     * Testa o cenário de convite recusado.
+     * Cobre a linha do switch onde ocorre a troca do estado InviteStatus.DECLINED.
      */
     @Test
     void renderCalendarDeclinedStatus() {

@@ -18,8 +18,8 @@ import static org.mockito.Mockito.when;
  * Testes unitários para AppUserDetailsService.
  *
  * Utiliza Mockito para simular o comportamento do UserRepository,
- * validando o carregamento bem-sucedido dos dados do utilizador para a sessão
- * e o lançamento adequado de exceções quando o utilizador não é encontrado.
+ * validando o carregamento bem-sucedido dos dados do user para a sessão
+ * e o lançamento adequado de exceções quando o user não é encontrado.
  */
 class AppUserDetailsServiceTest {
 
@@ -35,8 +35,8 @@ class AppUserDetailsServiceTest {
     }
 
     /**
-     * Testa Branch de Sucesso.
-     * Cobre as linhas de execução onde o repositório encontra o utilizador e cria o objeto UserDetails com sucesso.
+     * Testa o cenário de sucesso.
+     * Cobre as linhas de execução onde o rep encontra o user e cria o objeto UserDetails com sucesso.
      */
     @Test
     void loadUserByUsernameSuccess() {
@@ -54,15 +54,15 @@ class AppUserDetailsServiceTest {
     }
 
     /**
-     * Testa Branch de ERRO no Optional.orElseThrow.
-     * Cobre a linha em que é lançada a exceção UsernameNotFoundException.
+     * Testa  cenário  de erro no Optional.orElseThrow.
+     * Cobre as linhas em que é lançada a exceção UsernameNotFoundException.
      */
     @Test
     void loadUserByUsernameNotFound() {
         // Preparação
         when(userRepository.findByUsername("naoexiste")).thenReturn(Optional.empty());
 
-        // verificar se o resultado obtifo foi o  esperado de lançar a exceção
+        // verificar se o resultado obtido foi o  esperado de lançar a exceção
         assertThrows(UsernameNotFoundException.class, () -> {
             appUserDetailsService.loadUserByUsername("naoexiste");
         });

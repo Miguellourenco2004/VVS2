@@ -41,7 +41,7 @@ class UserRepositoryTest {
         // pesquiser o user
         Optional<User> found = userRepository.findByUsername("Miguel");
 
-        //   // Verifica se o utilizador foi encontrado
+        //   // Verifica se o user foi encontrado
         assertTrue(found.isPresent());
         assertEquals("miguelou04@email.com", found.get().getEmail());
     }

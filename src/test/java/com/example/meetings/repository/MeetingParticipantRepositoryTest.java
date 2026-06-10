@@ -36,7 +36,7 @@ class MeetingParticipantRepositoryTest {
 
     /**
      * Testa a pesquisa de participantes
-     * por utilizador e estado do convite
+     * por user e estado do convite
      */
     @Test
     void findByUserAndStatus() {
@@ -69,7 +69,7 @@ class MeetingParticipantRepositoryTest {
 
     /**
      * Testa a pesquisa de participante
-     * através do ID da reunião e do ID do utilizador.
+     * através do ID da reunião e do ID do user.
      */
     @Test
     void  findParticipantByMeetingAndUser() {

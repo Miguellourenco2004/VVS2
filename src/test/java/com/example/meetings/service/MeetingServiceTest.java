@@ -40,8 +40,8 @@ class MeetingServiceTest {
     void setUp() { MockitoAnnotations.openMocks(this); }
 
     /**
-     * Testa Branch error na validação de datas do  propose.
-     * Cobre a linha 'if (!end.isAfter(start))'  exceção se a  data fim < data inicio
+     * Testa o cenário de erro na validação de propose.
+     * Cobre a linha 'if (!end.isAfter(start))', garantindo a exceção se a data de fim < data de início.
      */
     @Test
     void proposeMeetingInvalidDatesFails() {
@@ -60,9 +60,9 @@ class MeetingServiceTest {
     }
 
     /**
-     * Testa o Branch de susseful do propose.
+     * Testa o cenário de sucesso do propose.
      * Cobre o loop 'for', a linha do 'if (normalized.isEmpty() || !seen.add(normalized))' para convidados válidos
-     * e garante a Line Coverage da persistência na base de dados.
+     * e garante a cobertura da persistência na base de dados.
      */
     @Test
     void proposeMeetingSuccess() {
@@ -87,8 +87,8 @@ class MeetingServiceTest {
     }
 
     /**
-     * Testa o Branch de error de validação de Status no  respond.
-     * Cobre as linhas de decisão onde um estado  pending  não pode ser enviado na resposta.
+     * Testa o cenário de erro na validação de estado no respond.
+     * Cobre as linhas de decisão onde o estado PENDING não pode ser enviado na resposta.
      */
     @Test
     void respondMeetingInvalidStatusFails() {
@@ -103,20 +103,20 @@ class MeetingServiceTest {
     }
 
     /**
-     * Testa o Branch  de sucesseful no  respond.
-     * Cobre as linhas onde o convite é encontrado e o Status é atualizado.
+     * Testa o cenário de sucesso no respond.
+     * Cobre as linhas onde o convite é encontrado e o estado é atualizado.
      */
     @Test
     void respondMeetingAcceptedSuccess() {
 
-        // Preparar o utilizador user
+        // Preparar o  user
         User user = mock(User.class);
         when(user.getId()).thenReturn(100L);
 
         // Preparar o convite da reunião
         MeetingParticipant convite = mock(MeetingParticipant.class);
 
-        // Simula a procura do convite pelo id da reunião e utilizador
+        // Simula a procura do convite pelo id da reunião e user
         when(participantRepository.findByMeetingIdAndUserId(1L, 100L))
                 .thenReturn(Optional.of(convite));
 
@@ -128,8 +128,8 @@ class MeetingServiceTest {
     }
 
     /**
-     * Testa o Branch de sucesso do copyFromDiscovered com dados completos.
-     * Cobre o caminho onde o evento tem data de fim e ativa todos os ramos 'true' no buildDescription (título, descrição, venue e url).
+     * Testa o cenário de sucesso do copyFromDiscovered com dados completos.
+     * Cobre o caminho onde o evento tem data de fim e ativa todos os ramos true no buildDescription (título, descrição, venue e url).
      */
     @Test
     void copyFromDiscoveredSuccess() {
@@ -160,8 +160,8 @@ class MeetingServiceTest {
     }
 
     /**
-     * Testa os Branches  do copyFromDiscovered e buildDescription com dados mínimos.
-     * Cobre o ramo onde 'event.end()' é null  e contorna os blocos 'if' devido aos valores vazios ou null.
+     * Testa os cenários  do copyFromDiscovered e buildDescription com dados mínimos.
+     * Cobre o ramo onde 'event.end()' é null e contorna os blocos 'if' devido aos valores vazios ou nulos.
      */
     @Test
     void copyFromDiscoveredMinimalDataSuccess() {
@@ -190,8 +190,8 @@ class MeetingServiceTest {
     }
 
     /**
-     * Testa o caso de sucess do calendarForIcalToken.
-     * Cobre a linha onde o token é válido, o utilizador é encontrado e as reuniões são listadas.
+     * Testa o cenário de sucesso do calendarForIcalToken.
+     * Cobre a linha onde o token é válido, o user é encontrado e as reuniões são listadas.
      */
     @Test
     void calendarForIcalTokenSuccess() {
@@ -211,8 +211,8 @@ class MeetingServiceTest {
     }
 
     /**
-     * Testa o Branch de erro do calendarForIcalToken.
-     * Cobre o orElseThrow lançando IllegalArgumentException se o token não existir.
+     * Testa o cenário de erro do calendarForIcalToken.
+     * Cobre o orElseThrow, lançando IllegalArgumentException se o token não existir.
      */
     @Test
     void calendarForIcalTokenInvalidFails() {
@@ -227,8 +227,8 @@ class MeetingServiceTest {
     }
 
     /**
-     * Testa o caso de sucess do método calendarFor.
-     * cobre a  consulta de reuniões associadas a um utilizador.
+     * Testa o cenário de sucesso do metodo calendarFor.
+     * Cobre a consulta de reuniões associadas a um user.
      */
     @Test
     void calendarForSuccess() {
@@ -239,14 +239,14 @@ class MeetingServiceTest {
         // Executar a pesquisa
         List<Meeting> resultado = meetingService.calendarFor(user);
 
-        // Verificar se o repositório foi chamado para procurar o calendário do utilizador
+        // Verificar se o repositório foi chamado para procurar o calendário do user
         assertNotNull(resultado);
         verify(meetingRepository, times(1)).findCalendarMeetings(user);
     }
 
     /**
-     * Testa o caso de sucesso do método pendingInvitesFor.
-     * cobre a  consulta de convites pendentes de um utilizador.
+     * Testa o cenário de sucesso do metodo pendingInvitesFor.
+     * Cobre a consulta de convites pendentes de um user.
      */
     @Test
     void pendingInvitesForSuccess() {

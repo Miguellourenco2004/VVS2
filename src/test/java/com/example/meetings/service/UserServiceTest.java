@@ -38,8 +38,8 @@ class UserServiceTest {
     }
 
     /**
-     * Testa o Branch  onde o utilizador ja existe
-     * Cobre o 'if (userRepository.existsByUsername(username))' como true .
+     * Testa o cenário de erro onde o user já existe.
+     * Cobre a linha do if (userRepository.existsByUsername(username)) quando é True.
      */
     @Test
     void registerDuplicateUsernameFails() {
@@ -54,22 +54,22 @@ class UserServiceTest {
     }
 
     /**
-     * Testa o Branch de sucesso do registo.
-     * Cobre a criação, codificação e persistência do utilizador  .
+     * Testa o cenário de sucesso do registo.
+     * Cobre as linhas responsáveis pela criação, codificação da password e persistência do user.
      */
     @Test
     void registerSuccess() {
 
         //usern  ainda não existe
-        when(userRepository.existsByUsername("maria")).thenReturn(false);
+        when(userRepository.existsByUsername("miguel")).thenReturn(false);
 
         // Simula a encriptação da password
         when(passwordEncoder.encode("benfica")).thenReturn("benficahash");
 
-        // Preparar o utilizador retornado pelo save
+        // Preparar o user retornado pelo save
         User userRetornado = mock(User.class);
 
-        // Simula o save do utilizador
+        // Simula o save do user
         when(userRepository.save(any(User.class))).thenReturn(userRetornado);
 
         User user = userService.register("miguel", "miguelou04@email.com", "Benfica123");
@@ -81,7 +81,8 @@ class UserServiceTest {
     }
 
     /**
-     * Testa o caso de sucesso do requireByUsername.
+     * Testa o cenário de sucesso na procura de user.
+     * Cobre as linhas de pesquisa e retorno do user esperado.
      */
     @Test
     void requireByUsername() {
@@ -92,17 +93,17 @@ class UserServiceTest {
         // Procura user
         User res = userService.requireByUsername("miguel");
 
-        // Verifica se o utilizador retornado é o esperado
+        // Verifica se o user retornado é o esperado
         assertEquals(user, res);
     }
 
     /**
-     * Testa o Branch onde o utilizador não é encontrado.
-     * Cobre o orElseThrow
+     * Testa o cenário de erro onde o user não é encontrado.
+     * Cobre a linha do orElseThrow, lançando a exceção IllegalArgumentException.
      */
     @Test
     void requireByUsernameNotFound() {
-        // Simula que o utilizador não existe
+        // Simula que o user não existe
         when(userRepository.findByUsername("mIGUEL")).thenReturn(Optional.empty());
 
 
